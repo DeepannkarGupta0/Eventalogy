@@ -93,6 +93,16 @@ router.post("/vendors/:id/status", async (req: Request, res: Response) => {
     const batch = db.batch();
     batch.update(vendorRef, { status, updatedAt: FieldValue.serverTimestamp() });
     
+    // Automatically grant the vendor role if they are being activated!
+    if (status === "active" && vendorDoc.data()?.userId) {
+      try {
+        const { getAuth } = require("firebase-admin/auth");
+        await getAuth().setCustomUserClaims(vendorDoc.data()!.userId, { role: "vendor" });
+      } catch (authErr) {
+        console.warn("Failed to set vendor custom claims. User may not exist in Firebase Auth.", authErr);
+      }
+    }
+
     const auditRef = db.collection("audit_logs").doc();
     batch.set(auditRef, {
       action: "change_vendor_status",
