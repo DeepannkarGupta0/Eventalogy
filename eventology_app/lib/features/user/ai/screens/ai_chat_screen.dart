@@ -6,7 +6,8 @@ import '../services/agent_chat_service.dart';
 import '../widgets/chat_components.dart';
 
 class AIChatScreen extends StatefulWidget {
-  const AIChatScreen({super.key});
+  final String? initialMessage;
+  const AIChatScreen({super.key, this.initialMessage});
 
   @override
   State<AIChatScreen> createState() => _AIChatScreenState();
@@ -27,11 +28,18 @@ class _AIChatScreenState extends State<AIChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Add a default greeting
-    _messages.add(AgentMessage(
-      role: 'assistant', 
-      content: 'Hello! I am your Eventology Architect. I can help you plan your dream event, find the best venues, and manage your budget. What would you like to plan today?'
-    ));
+    // Add a default greeting if no initial message
+    if (widget.initialMessage == null) {
+      _messages.add(AgentMessage(
+        role: 'assistant', 
+        content: 'Hello! I am your Eventology Architect. I can help you plan your dream event, find the best venues, and manage your budget. What would you like to plan today?'
+      ));
+    } else {
+      // Send the initial message immediately
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _sendMessage(widget.initialMessage!);
+      });
+    }
   }
 
   Future<void> _sendMessage(String text) async {

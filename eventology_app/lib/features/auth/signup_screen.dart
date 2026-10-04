@@ -1,18 +1,13 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../core/widgets/primary_button.dart';
-import '../../core/widgets/custom_text_field.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../services/firebase_auth_service.dart';
-import '../../services/auth_state_notifier.dart';
-import '../../core/config/api_config.dart';
-
-/// The two public account types users can select during signup.
-/// Admin is intentionally excluded — it is a backend-assigned privilege.
-enum _AccountType { user, vendor }
+import '../../services/firestore/vendor_repository.dart';
+import '../../models/vendor_model.dart';
+import '../../core/firebase/firestore_config.dart';
+import '../../core/database/collections.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -25,13 +20,58 @@ class _SignupScreenState extends State<SignupScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+
+  // Vendor specific controllers
   final _businessNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _gstController = TextEditingController();
 
-  _AccountType _selectedType = _AccountType.user;
+  bool _isVendor = false;
   bool _isLoading = false;
+  bool _categoriesLoading = true;
 
-  // Backend base URL — unified for all local development platforms
-  static const String _backendUrl = ApiConfig.baseUrl;
+  List<Map<String, dynamic>> _categories = [];
+  List<String> _selectedCategories = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    try {
+      final snap = await FirestoreConfig.instance
+          .collection(Collections.categories)
+          .get();
+      if (mounted) {
+        setState(() {
+          _categories = snap.docs
+              .map((d) => {'id': d.id, 'name': d.data()['name']})
+              .toList();
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching categories: $e');
+      // Fallback categories if Firestore fails (e.g., due to auth rules before login)
+      if (mounted) {
+        setState(() {
+          _categories = [
+            {'id': 'cat_catering', 'name': 'Elite Catering'},
+            {'id': 'cat_photography', 'name': 'Photography'},
+            {'id': 'cat_decoration', 'name': 'Luxury Decoration'},
+            {'id': 'cat_venue', 'name': 'Venue & Accommodation'},
+          ];
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _categoriesLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -39,6 +79,8 @@ class _SignupScreenState extends State<SignupScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _businessNameController.dispose();
+    _phoneController.dispose();
+    _gstController.dispose();
     super.dispose();
   }
 
@@ -46,27 +88,60 @@ class _SignupScreenState extends State<SignupScreen> {
     final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    final businessName = _businessNameController.text.trim();
 
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
       _showError('Please fill in all required fields');
       return;
     }
 
-    if (_selectedType == _AccountType.vendor && businessName.isEmpty) {
-      _showError('Please enter your business name');
-      return;
+    if (_isVendor) {
+      if (_businessNameController.text.isEmpty ||
+          _phoneController.text.isEmpty ||
+          _selectedCategories.isEmpty) {
+        _showError(
+          'Please fill in vendor details and select at least one category',
+        );
+        return;
+      }
     }
 
     setState(() => _isLoading = true);
 
     try {
-      if (_selectedType == _AccountType.user) {
-        await _signUpAsUser(name, email, password);
-      } else {
-        await _signUpAsVendor(name, email, password, businessName);
+      final user = await FirebaseAuthService.signUp(
+        email: email,
+        password: password,
+        name: name,
+      );
+
+      if (_isVendor && user != null) {
+        // Create vendor profile
+        final vendor = VendorModel(
+          vendorId: '', // auto-generated
+          userId: user.user!.uid,
+          businessName: _businessNameController.text.trim(),
+          ownerName: name,
+          email: email,
+          phone: _phoneController.text.trim(),
+          status: 'pending',
+          verified: false,
+          categoryIds: _selectedCategories,
+          gstNumber: _gstController.text.trim(),
+          createdAt: Timestamp.now(),
+        );
+        await VendorRepository.createVendor(vendor);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Partner Account Created! Pending Admin Approval.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
-      // Navigation handled by GoRouter redirect reacting to authStateNotifier
+
+      // The auth state listener will automatically redirect to home/dashboard.
     } catch (e) {
       if (mounted) {
         _showError(e.toString().replaceAll('Exception: ', ''));
@@ -75,55 +150,6 @@ class _SignupScreenState extends State<SignupScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    }
-  }
-
-  /// Creates a normal user account.
-  /// Firestore is written directly from the client (role: 'user' — per security rules).
-  Future<void> _signUpAsUser(String name, String email, String password) async {
-    await FirebaseAuthService.signUp(email: email, password: password, name: name);
-  }
-
-  /// Creates a vendor account via a 2-step process:
-  ///   1. Firebase Auth account created client-side (standard signup)
-  ///   2. Backend sets vendor Custom Claim + creates vendor document
-  ///      This prevents client-side role assignment — vendor privilege is server-assigned.
-  Future<void> _signUpAsVendor(
-    String name,
-    String email,
-    String password,
-    String businessName,
-  ) async {
-    // Step 1: Create Firebase Auth account (writes role: 'user' to Firestore initially)
-    await FirebaseAuthService.signUp(email: email, password: password, name: name);
-
-    // Step 2: Get the fresh ID token for the newly created account
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) throw Exception('Authentication failed. Please try again.');
-
-    final idToken = await user.getIdToken();
-
-    // Step 3: Call backend to set vendor claim + create vendor Firestore document
-    final response = await http.post(
-      Uri.parse('$_backendUrl/api/auth/register-vendor'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $idToken',
-      },
-      body: jsonEncode({
-        'businessName': businessName,
-        'ownerName': name,
-        'categoryIds': [], // Vendor can set categories after signup
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      // Step 4: Force-refresh token so the vendor claim takes effect immediately
-      await authStateNotifier.refreshRoleClaims();
-    } else {
-      // Parse backend error message
-      final body = jsonDecode(response.body);
-      throw Exception(body['error'] ?? 'Failed to create vendor account. Please try again.');
     }
   }
 
@@ -137,231 +163,398 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF1E2128), AppColors.background],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Icon(
-                    Icons.celebration_rounded,
-                    size: 72,
+      backgroundColor: const Color(0xFF0D0D0F),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 20),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.auto_awesome,
+                    size: 48,
                     color: AppColors.primary,
                   ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Create your Eventology account',
-                    style: Theme.of(context).textTheme.displayMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'I am joining as:',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Join Eventology',
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Create an account to continue',
+                style: TextStyle(color: AppColors.textSecondary),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
 
-                  // ── Account Type Selector ─────────────────────────────────
-                  // IMPORTANT: Only User and Vendor are shown.
-                  // Admin is a backend-assigned privilege — never selectable here.
-                  Row(
+              // User vs Vendor Toggle
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.glassBorder),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isVendor = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !_isVendor
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'User',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: !_isVendor ? Colors.black : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _isVendor = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _isVendor
+                                ? AppColors.primary
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Partner / Vendor',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: _isVendor ? Colors.black : Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 40),
+
+              // Basic Info
+              _buildGlassTextField(
+                controller: _nameController,
+                label: 'Full Name',
+                hint: 'Enter your name',
+              ),
+              const SizedBox(height: 16),
+              _buildGlassTextField(
+                controller: _emailController,
+                label: 'Email Address',
+                hint: 'Enter your email',
+              ),
+              const SizedBox(height: 16),
+              _buildGlassTextField(
+                controller: _passwordController,
+                label: 'Password',
+                hint: 'Create a password',
+                isPassword: true,
+              ),
+              const SizedBox(height: 32),
+
+              // Vendor specific info
+              if (_isVendor) ...[
+                const Divider(color: AppColors.glassBorder),
+                const SizedBox(height: 24),
+                const Text(
+                  'Partner Details',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _buildGlassTextField(
+                  controller: _businessNameController,
+                  label: 'Business Name',
+                  hint: 'E.g. Royal Catering',
+                ),
+                const SizedBox(height: 16),
+                _buildGlassTextField(
+                  controller: _phoneController,
+                  label: 'Phone Number',
+                  hint: 'E.g. +91 9876543210',
+                ),
+                const SizedBox(height: 16),
+                _buildGlassTextField(
+                  controller: _gstController,
+                  label: 'GST Number (Optional)',
+                  hint: 'E.g. 22AAAAA0000A1Z5',
+                ),
+                const SizedBox(height: 24),
+
+                const Text(
+                  'Expertise / Category',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_categoriesLoading)
+                  const Center(child: CircularProgressIndicator())
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 2.5,
+                        ),
+                    itemCount: _categories.length,
+                    itemBuilder: (context, index) {
+                      final cat = _categories[index];
+                      final isSelected = _selectedCategories.contains(
+                        cat['id'],
+                      );
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              _selectedCategories.remove(cat['id']);
+                            } else {
+                              _selectedCategories.add(cat['id']);
+                            }
+                          });
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primary.withOpacity(0.15)
+                                : Colors.white.withOpacity(0.03),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.glassBorder,
+                              width: isSelected ? 2 : 1,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _getIconForCategory(cat['name']),
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  cat['name'],
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppColors.textSecondary,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                const SizedBox(height: 32),
+              ],
+
+              // Submit
+              GestureDetector(
+                onTap: _isLoading ? null : _handleSignup,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: _isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.black,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            _isVendor ? 'Apply as Partner' : 'Create Account',
+                            style: const TextStyle(
+                              color: AppColors.background,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Google Sign In Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Google Sign-In coming soon!'),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    backgroundColor: Colors.white.withOpacity(0.05),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: _AccountTypeCard(
-                          type: _AccountType.user,
-                          selected: _selectedType == _AccountType.user,
-                          icon: Icons.person_rounded,
-                          title: 'User',
-                          subtitle:
-                              'Plan events, discover venues, and work with the AI Event Architect.',
-                          onTap: () =>
-                              setState(() => _selectedType = _AccountType.user),
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text(
+                          'G',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
-                      Expanded(
-                        child: _AccountTypeCard(
-                          type: _AccountType.vendor,
-                          selected: _selectedType == _AccountType.vendor,
-                          icon: Icons.store_rounded,
-                          title: 'Vendor',
-                          subtitle:
-                              'List your services, receive enquiries, and manage event bookings.',
-                          onTap: () =>
-                              setState(() => _selectedType = _AccountType.vendor),
+                      const Text(
+                        'Continue with Google',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 28),
-
-                  // ── Form Fields ───────────────────────────────────────────
-                  CustomTextField(
-                    controller: _nameController,
-                    label: 'Full Name',
-                    hint: 'Enter your name',
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Business name — only visible for Vendor signup
-                  if (_selectedType == _AccountType.vendor) ...[
-                    CustomTextField(
-                      controller: _businessNameController,
-                      label: 'Business Name',
-                      hint: 'Enter your business name',
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  CustomTextField(
-                    controller: _emailController,
-                    label: 'Email Address',
-                    hint: 'Enter your email',
-                  ),
-                  const SizedBox(height: 16),
-                  CustomTextField(
-                    controller: _passwordController,
-                    label: 'Password',
-                    hint: 'Create a password',
-                    isPassword: true,
-                  ),
-                  const SizedBox(height: 32),
-
-                  PrimaryButton(
-                    text: _selectedType == _AccountType.vendor
-                        ? 'Create Vendor Account'
-                        : 'Create Account',
-                    onPressed: _handleSignup,
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: 16),
-                  TextButton(
-                    onPressed: () => context.go('/'),
-                    child: Text(
-                      'Already have an account? Sign In',
-                      style: TextStyle(color: AppColors.primary),
-                    ),
-                  ),
-
-                  if (_selectedType == _AccountType.vendor) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      'Vendor accounts are reviewed before receiving enquiries.',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ],
+                ),
               ),
-            ),
+              const SizedBox(height: 24),
+
+              TextButton(
+                onPressed: () => context.go('/'),
+                child: const Text(
+                  'Already have an account? Sign In',
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
     );
   }
-}
 
-/// Card widget representing a selectable account type.
-/// Only used for User and Vendor — Admin is intentionally excluded.
-class _AccountTypeCard extends StatelessWidget {
-  final _AccountType type;
-  final bool selected;
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
+  IconData _getIconForCategory(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('venue')) return Icons.location_city;
+    if (n.contains('cater')) return Icons.restaurant;
+    if (n.contains('photo') || n.contains('video')) return Icons.camera_alt;
+    if (n.contains('decor')) return Icons.celebration;
+    if (n.contains('music') || n.contains('dj')) return Icons.music_note;
+    if (n.contains('makeup') || n.contains('beauty')) return Icons.brush;
+    return Icons.star;
+  }
 
-  const _AccountTypeCard({
-    required this.type,
-    required this.selected,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.glassBorder,
-            width: selected ? 2 : 1,
+  Widget _buildGlassTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    bool isPassword = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
           ),
-          color: selected
-              ? AppColors.primary.withAlpha(26)
-              : AppColors.surface,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  color: selected ? AppColors.primary : AppColors.textSecondary,
-                  size: 24,
-                ),
-                const Spacer(),
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: selected ? AppColors.primary : AppColors.glassBorder,
-                      width: 2,
-                    ),
-                    color: selected ? AppColors.primary : Colors.transparent,
-                  ),
-                  child: selected
-                      ? const Icon(Icons.check, color: Colors.black, size: 12)
-                      : null,
-                ),
-              ],
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.glassBorder),
+          ),
+          child: TextField(
+            controller: controller,
+            obscureText: isPassword,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: const TextStyle(color: AppColors.textSecondary),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.all(20),
             ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                color: selected ? AppColors.primary : Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 15,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 11,
-                height: 1.4,
-              ),
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

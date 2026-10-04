@@ -38,7 +38,7 @@ class AgentChatService {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode(body),
-      ).timeout(const Duration(seconds: 45)); // Need sufficient timeout for LLM
+      ).timeout(const Duration(seconds: 120)); // Need sufficient timeout for LLM
 
       if (response.statusCode == 200) {
         return AgentChatResponse.fromJson(jsonDecode(response.body));

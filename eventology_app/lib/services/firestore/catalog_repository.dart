@@ -7,8 +7,10 @@ import '../../models/venue_type_model.dart';
 import '../../models/location_model.dart';
 import '../../core/database/collections.dart';
 
+import '../../core/firebase/firestore_config.dart';
+
 class CatalogRepository {
-  static final _firestore = FirebaseFirestore.instance;
+  static final _firestore = FirestoreConfig.instance;
 
   static Stream<List<VendorModel>> streamFeaturedVendors({int limit = 5}) {
     return _firestore

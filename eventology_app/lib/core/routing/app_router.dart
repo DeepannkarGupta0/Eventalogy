@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import '../../features/auth/login_screen.dart';
 import '../../features/user/shell/user_shell_screen.dart';
 import '../../features/user/home/user_home_view.dart';
@@ -7,7 +8,9 @@ import '../../features/user/planner/user_planner_view.dart';
 import '../../features/user/planner/event_planner_screen.dart';
 import '../../features/user/profile/user_profile_view.dart';
 import '../../features/user/ai/screens/ai_chat_screen.dart';
+import '../../features/user/ai/screens/ai_planner_flow_screen.dart';
 import '../../features/user/ai/screens/ai_generated_plan_screen.dart';
+import '../../features/user/ai/screens/payment_overview_screen.dart';
 import '../../models/ai/models.dart';
 import '../../features/user/ai/models/agent_models.dart';
 import '../../features/user/events/screens/plan_review_screen.dart';
@@ -26,14 +29,15 @@ import '../../features/vendor/profile/vendor_profile_view.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../services/auth_state_notifier.dart';
 import '../../features/user/whatsapp/whatsapp_link_screen.dart';
+import '../../features/user/profile/become_vendor_screen.dart';
+
+import '../../features/auth/splash_screen.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
@@ -41,26 +45,32 @@ final appRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: authStateNotifier,
   redirect: (context, state) {
+    // If it's the splash screen, let it be. Splash screen will handle its own routing.
+    if (state.matchedLocation == '/') {
+      return null;
+    }
+
     if (authStateNotifier.isLoading) {
       return '/loading';
     }
 
     final isLoggedIn = authStateNotifier.isAuthenticated;
     final role = authStateNotifier.role;
-    final isGoingToLoginOrSignup = state.matchedLocation == '/' || state.matchedLocation == '/signup';
+    final isGoingToLoginOrSignup =
+        state.matchedLocation == '/login' || state.matchedLocation == '/signup';
 
     // 1. Unauthenticated users must log in
     if (!isLoggedIn && !isGoingToLoginOrSignup) {
-      return '/';
+      return '/login';
     }
 
     // 2. Authenticated users logic
     if (isLoggedIn) {
-      // If trying to access login/signup while already logged in
-      if (isGoingToLoginOrSignup) {
-        // Admin lands on /home — they access /admin via Profile
+      // If trying to access login/signup or stuck on loading screen while already logged in
+      if (isGoingToLoginOrSignup || state.matchedLocation == '/loading') {
         if (role == 'vendor') return '/vendor';
-        return '/home'; // Default for user AND admin
+        if (role == 'admin') return '/admin';
+        return '/home';
       }
 
       // Security Guard: Prevent normal users/vendors from accessing admin
@@ -68,26 +78,23 @@ final appRouter = GoRouter(
         return '/home';
       }
 
-      // Security Guard: Prevent normal users/admins from accessing vendor
-      if (state.matchedLocation.startsWith('/vendor') && role != 'vendor') {
+      // Security Guard: Prevent normal users from accessing vendor
+      if (state.matchedLocation.startsWith('/vendor') &&
+          role != 'vendor' &&
+          role != 'admin') {
         return '/home';
       }
     }
     return null;
   },
   routes: [
+    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
     GoRoute(
       path: '/loading',
       builder: (context, state) => const LoadingScreen(),
     ),
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: '/signup',
-      builder: (context, state) => const SignupScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+    GoRoute(path: '/signup', builder: (context, state) => const SignupScreen()),
     GoRoute(
       path: '/admin',
       builder: (context, state) => const AdminDashboardScreen(),
@@ -133,13 +140,27 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/ai-planner',
-      builder: (context, state) => const AIChatScreen(),
+      builder: (context, state) => const AIPlannerFlowScreen(),
+    ),
+    GoRoute(
+      path: '/ai-chat',
+      builder: (context, state) {
+        final initialMessage = state.extra as String?;
+        return AIChatScreen(initialMessage: initialMessage);
+      },
     ),
     GoRoute(
       path: '/ai-generated',
       builder: (context, state) {
         final plan = state.extra as AIGeneratedPlan;
         return AIGeneratedPlanScreen(plan: plan);
+      },
+    ),
+    GoRoute(
+      path: '/payment-overview',
+      builder: (context, state) {
+        final total = state.extra as String;
+        return PaymentOverviewScreen(estimatedTotal: total);
       },
     ),
     GoRoute(
@@ -158,11 +179,16 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/my-events/:id',
-      builder: (context, state) => EventDetailScreen(eventId: state.pathParameters['id']!),
+      builder: (context, state) =>
+          EventDetailScreen(eventId: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/link-whatsapp',
       builder: (context, state) => const WhatsAppLinkScreen(),
+    ),
+    GoRoute(
+      path: '/become-vendor',
+      builder: (context, state) => const BecomeVendorScreen(),
     ),
     GoRoute(
       path: '/venues',
@@ -170,7 +196,8 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/venues/:id',
-      builder: (context, state) => VenueDetailScreen(venueId: state.pathParameters['id']!),
+      builder: (context, state) =>
+          VenueDetailScreen(venueId: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/vendors',
@@ -181,7 +208,8 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: '/vendors/:id',
-      builder: (context, state) => VendorDetailScreen(vendorId: state.pathParameters['id']!),
+      builder: (context, state) =>
+          VendorDetailScreen(vendorId: state.pathParameters['id']!),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

@@ -27,7 +27,7 @@ class _AdminVenuesTabState extends State<AdminVenuesTab> {
           child: StreamBuilder<List<VenueModel>>(
             stream: VenueRepository.streamVenues(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) return Center(child: Text('Error: \${snapshot.error}'));
+              if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
               var venues = snapshot.data!;
@@ -117,7 +117,7 @@ class _AdminVenuesTabState extends State<AdminVenuesTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text("Contact: ${venue.contactName ?? 'N/A'} (${venue.contactPhone ?? 'N/A'})"),
-            Text('Capacity: \${venue.capacity} | Price: ₹\${venue.priceFrom ?? 0} - ₹\${venue.priceTo ?? 0}'),
+            Text('Capacity: ${venue.capacity} | Price: ₹${venue.priceFrom ?? 0} - ₹${venue.priceTo ?? 0}'),
             Text("Status: ${venue.status.toUpperCase()} | ${venue.verified ? 'VERIFIED' : 'UNVERIFIED'}"),
           ],
         ),

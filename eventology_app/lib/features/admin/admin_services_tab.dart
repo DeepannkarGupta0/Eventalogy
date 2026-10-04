@@ -222,7 +222,7 @@ class _AdminServicesTabState extends State<AdminServicesTab> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return Center(child: Text('Error: \${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
+                return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
               }
               
               final services = snapshot.data ?? [];
@@ -243,7 +243,7 @@ class _AdminServicesTabState extends State<AdminServicesTab> {
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       title: Text(svc.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      subtitle: Text('Category: \$catName\\nPricing: \${svc.pricingModel}\${svc.basePrice != null ? " (\$\${svc.basePrice})" : ""}', style: const TextStyle(color: AppColors.textSecondary)),
+                      subtitle: Text('Category: $catName\nPricing: ${svc.pricingModel}${svc.basePrice != null ? " (\$${svc.basePrice})" : ""}', style: const TextStyle(color: AppColors.textSecondary)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

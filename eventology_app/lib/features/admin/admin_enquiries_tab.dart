@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../../models/enquiries_model.dart';
 import '../../services/firestore/enquiries_repository.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../core/firebase/firestore_config.dart';
 import '../../core/database/collections.dart';
+
 import 'package:intl/intl.dart';
 
 class AdminEnquiriesTab extends StatefulWidget {
@@ -27,22 +31,38 @@ class _AdminEnquiriesTabState extends State<AdminEnquiriesTab> {
           child: StreamBuilder<List<EnquiryModel>>(
             stream: EnquiriesRepository.stream(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
-              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              if (snapshot.hasError)
+                return Center(child: Text('Error: ${snapshot.error}'));
+              if (!snapshot.hasData)
+                return const Center(child: CircularProgressIndicator());
 
               var items = snapshot.data!;
 
               if (_searchQuery.isNotEmpty) {
-                items = items.where((i) =>
-                  i.message.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                  i.enquiryId.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+                items = items
+                    .where(
+                      (i) =>
+                          i.message.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ) ||
+                          i.enquiryId.toLowerCase().contains(
+                            _searchQuery.toLowerCase(),
+                          ),
+                    )
+                    .toList();
               }
 
               if (_statusFilter != 'All') {
-                items = items.where((i) => i.status.toLowerCase() == _statusFilter.toLowerCase()).toList();
+                items = items
+                    .where(
+                      (i) =>
+                          i.status.toLowerCase() == _statusFilter.toLowerCase(),
+                    )
+                    .toList();
               }
 
-              if (items.isEmpty) return const Center(child: Text('No enquiries found.'));
+              if (items.isEmpty)
+                return const Center(child: Text('No enquiries found.'));
 
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -77,15 +97,25 @@ class _AdminEnquiriesTabState extends State<AdminEnquiriesTab> {
           const SizedBox(width: 16),
           DropdownButton<String>(
             value: _statusFilter,
-            items: ['All', 'Pending', 'Sent', 'Responded', 'Quoted', 'Accepted', 'Rejected', 'Cancelled']
-                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                .toList(),
+            items: [
+              'All',
+              'Pending',
+              'Sent',
+              'Responded',
+              'Quoted',
+              'Accepted',
+              'Rejected',
+              'Cancelled',
+            ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
             onChanged: (val) => setState(() => _statusFilter = val!),
           ),
           const SizedBox(width: 16),
           ElevatedButton.icon(
             icon: const Icon(Icons.add, color: AppColors.background),
-            label: const Text('New Enquiry', style: TextStyle(color: AppColors.background)),
+            label: const Text(
+              'New Enquiry',
+              style: TextStyle(color: AppColors.background),
+            ),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => _showDialog(null),
           ),
@@ -95,34 +125,171 @@ class _AdminEnquiriesTabState extends State<AdminEnquiriesTab> {
   }
 
   Widget _buildCard(EnquiryModel item) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      color: AppColors.surfaceLighter,
-      child: ListTile(
-        title: Text('Enquiry ID: ${item.enquiryId}', style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Event: ${item.eventId} | Customer: ${item.customerId}'),
-            Text('Vendor: ${item.vendorId} | Service: ${item.serviceId}'),
-            Text('Date: ${DateFormat.yMMMd().format(item.requestedDate.toDate())} | Status: ${item.status.toUpperCase()}'),
-            Text('Message: ${item.message}', maxLines: 2, overflow: TextOverflow.ellipsis),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit, color: Colors.white70),
-              onPressed: () => _showDialog(item),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () => EnquiriesRepository.delete(item.enquiryId),
-            ),
-          ],
-        ),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.glassBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
       ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'ENQ-${item.enquiryId.substring(0, 5).toUpperCase()}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer, color: AppColors.primary, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      '2d 04h 12m Grace Period',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Details
+          Text(
+            'Event ID: ${item.eventId}   •   Customer: ${item.customerId}',
+            style: const TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Message: "${item.message}"',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Checklist Simulation
+          const Text(
+            'Requirements Checklist',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _buildCheckItem(
+                item.serviceId == 'venue' || item.status == 'accepted',
+                'Venue Confirmed',
+              ),
+              const SizedBox(width: 16),
+              _buildCheckItem(item.status == 'accepted', 'Photography'),
+              const SizedBox(width: 16),
+              _buildCheckItem(false, 'Catering'),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Footer Actions
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: item.status.toLowerCase() == 'pending'
+                      ? Colors.orange.withOpacity(0.2)
+                      : Colors.green.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  item.status.toUpperCase(),
+                  style: TextStyle(
+                    color: item.status.toLowerCase() == 'pending'
+                        ? Colors.orange
+                        : Colors.green,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.white70),
+                    onPressed: () => _showDialog(item),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.redAccent),
+                    onPressed: () => EnquiriesRepository.delete(item.enquiryId),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCheckItem(bool isChecked, String label) {
+    return Row(
+      children: [
+        Icon(
+          isChecked ? Icons.check_circle : Icons.radio_button_unchecked,
+          color: isChecked ? Colors.green : AppColors.textSecondary,
+          size: 16,
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: TextStyle(
+            color: isChecked ? Colors.white : AppColors.textSecondary,
+            fontSize: 12,
+          ),
+        ),
+      ],
     );
   }
 
@@ -175,20 +342,29 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
   Future<void> _fetchMasterData() async {
     try {
       final db = FirestoreConfig.instance;
-      
+
       final evSnap = await db.collection(Collections.events).get();
-      _events = evSnap.docs.map((d) => {'id': d.id, 'name': d.data()['title'] ?? d.id}).toList();
+      _events = evSnap.docs
+          .map((d) => {'id': d.id, 'name': d.data()['title'] ?? d.id})
+          .toList();
 
       final venSnap = await db.collection(Collections.vendors).get();
-      _vendors = venSnap.docs.map((d) => {'id': d.id, 'name': d.data()['businessName'] ?? d.id}).toList();
+      _vendors = venSnap.docs
+          .map((d) => {'id': d.id, 'name': d.data()['businessName'] ?? d.id})
+          .toList();
 
       final srvSnap = await db.collection(Collections.services).get();
-      _services = srvSnap.docs.map((d) => {'id': d.id, 'name': d.data()['name'] ?? d.id}).toList();
+      _services = srvSnap.docs
+          .map((d) => {'id': d.id, 'name': d.data()['name'] ?? d.id})
+          .toList();
 
       if (widget.item != null) {
-        if (_events.any((e) => e['id'] == widget.item!.eventId)) _selectedEvent = widget.item!.eventId;
-        if (_vendors.any((e) => e['id'] == widget.item!.vendorId)) _selectedVendor = widget.item!.vendorId;
-        if (_services.any((e) => e['id'] == widget.item!.serviceId)) _selectedService = widget.item!.serviceId;
+        if (_events.any((e) => e['id'] == widget.item!.eventId))
+          _selectedEvent = widget.item!.eventId;
+        if (_vendors.any((e) => e['id'] == widget.item!.vendorId))
+          _selectedVendor = widget.item!.vendorId;
+        if (_services.any((e) => e['id'] == widget.item!.serviceId))
+          _selectedService = widget.item!.serviceId;
       }
     } catch (e) {
       debugPrint("Error fetching master data: $e");
@@ -200,7 +376,12 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
   @override
   Widget build(BuildContext context) {
     if (_isLoadingData) {
-      return const AlertDialog(content: SizedBox(height: 100, child: Center(child: CircularProgressIndicator())));
+      return const AlertDialog(
+        content: SizedBox(
+          height: 100,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
     }
 
     return AlertDialog(
@@ -213,27 +394,50 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
             children: [
               TextFormField(
                 controller: _customerCtrl,
-                decoration: const InputDecoration(labelText: 'Customer ID (User ID)'),
+                decoration: const InputDecoration(
+                  labelText: 'Customer ID (User ID)',
+                ),
                 validator: (v) => v!.isEmpty ? 'Required' : null,
               ),
               DropdownButtonFormField<String>(
                 value: _selectedEvent,
                 decoration: const InputDecoration(labelText: 'Event'),
-                items: _events.map((e) => DropdownMenuItem<String>(value: e['id'], child: Text(e['name']))).toList(),
+                items: _events
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e['id'],
+                        child: Text(e['name']),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (v) => setState(() => _selectedEvent = v),
                 validator: (v) => v == null ? 'Required' : null,
               ),
               DropdownButtonFormField<String>(
                 value: _selectedVendor,
                 decoration: const InputDecoration(labelText: 'Vendor'),
-                items: _vendors.map((e) => DropdownMenuItem<String>(value: e['id'], child: Text(e['name']))).toList(),
+                items: _vendors
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e['id'],
+                        child: Text(e['name']),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (v) => setState(() => _selectedVendor = v),
                 validator: (v) => v == null ? 'Required' : null,
               ),
               DropdownButtonFormField<String>(
                 value: _selectedService,
                 decoration: const InputDecoration(labelText: 'Service'),
-                items: _services.map((e) => DropdownMenuItem<String>(value: e['id'], child: Text(e['name']))).toList(),
+                items: _services
+                    .map(
+                      (e) => DropdownMenuItem<String>(
+                        value: e['id'],
+                        child: Text(e['name']),
+                      ),
+                    )
+                    .toList(),
                 onChanged: (v) => setState(() => _selectedService = v),
                 validator: (v) => v == null ? 'Required' : null,
               ),
@@ -261,14 +465,30 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
               DropdownButtonFormField<String>(
                 value: _status,
                 decoration: const InputDecoration(labelText: 'Status'),
-                items: ['pending', 'sent', 'responded', 'quoted', 'accepted', 'rejected', 'cancelled']
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e.toUpperCase())))
-                    .toList(),
+                items:
+                    [
+                          'pending',
+                          'sent',
+                          'responded',
+                          'quoted',
+                          'accepted',
+                          'rejected',
+                          'cancelled',
+                        ]
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(e.toUpperCase()),
+                          ),
+                        )
+                        .toList(),
                 onChanged: (v) => setState(() => _status = v!),
               ),
               TextFormField(
                 controller: _reqsCtrl,
-                decoration: const InputDecoration(labelText: 'Requirements/Notes (Optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Requirements/Notes (Optional)',
+                ),
                 maxLines: 2,
               ),
             ],
@@ -280,10 +500,7 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(
-          onPressed: _save,
-          child: const Text('Save'),
-        ),
+        ElevatedButton(onPressed: _save, child: const Text('Save')),
       ],
     );
   }
@@ -298,7 +515,9 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
       vendorId: _selectedVendor!,
       serviceId: _selectedService!,
       message: _msgCtrl.text.trim(),
-      requirements: _reqsCtrl.text.trim().isEmpty ? null : {'notes': _reqsCtrl.text.trim()},
+      requirements: _reqsCtrl.text.trim().isEmpty
+          ? null
+          : {'notes': _reqsCtrl.text.trim()},
       requestedDate: Timestamp.fromDate(_reqDate),
       status: _status,
       createdAt: widget.item?.createdAt ?? Timestamp.now(),
@@ -312,8 +531,9 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 }
-

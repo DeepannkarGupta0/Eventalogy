@@ -18,6 +18,7 @@ class VendorModel {
   final String status;
   final Timestamp createdAt;
   final Timestamp? updatedAt;
+  final String? gstNumber;
 
   VendorModel({
     required this.vendorId,
@@ -37,6 +38,7 @@ class VendorModel {
     required this.status,
     required this.createdAt,
     this.updatedAt,
+    this.gstNumber,
   });
 
   factory VendorModel.fromFirestore(DocumentSnapshot doc) {
@@ -59,6 +61,7 @@ class VendorModel {
       status: data['status'] as String? ?? 'pending',
       createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
       updatedAt: data['updatedAt'] as Timestamp?,
+      gstNumber: data['gstNumber'] as String?,
     );
   }
 
@@ -81,6 +84,7 @@ class VendorModel {
       'status': status,
       'createdAt': createdAt,
       if (updatedAt != null) 'updatedAt': updatedAt,
+      if (gstNumber != null) 'gstNumber': gstNumber,
     };
   }
 
@@ -102,6 +106,7 @@ class VendorModel {
     String? status,
     Timestamp? createdAt,
     Timestamp? updatedAt,
+    String? gstNumber,
   }) {
     return VendorModel(
       vendorId: vendorId ?? this.vendorId,
@@ -121,6 +126,7 @@ class VendorModel {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      gstNumber: gstNumber ?? this.gstNumber,
     );
   }
 

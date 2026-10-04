@@ -130,6 +130,12 @@ class UserProfileView extends StatelessWidget {
                             subtitle: 'Plan events via WhatsApp',
                             onTap: () => context.push('/link-whatsapp'),
                           ),
+                          _ProfileItem(
+                            icon: Icons.store_mall_directory_rounded,
+                            label: 'Become a Vendor',
+                            subtitle: 'List your business on Eventology',
+                            onTap: () => context.push('/become-vendor'),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -164,6 +170,24 @@ class UserProfileView extends StatelessWidget {
                               await FirebaseAuthService.signOut();
                             },
                             destructive: true,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // ── Developer Tools ── Visible ONLY during development ──
+                      _ProfileSection(
+                        title: 'Developer Tools (Test Only)',
+                        items: [
+                          _ProfileItem(
+                            icon: Icons.swap_horiz_rounded,
+                            label: 'Switch to Vendor Dashboard',
+                            subtitle: 'Force switch your role to Vendor',
+                            onTap: () {
+                              authStateNotifier.setTestRole('vendor');
+                              context.go('/vendor');
+                            },
+                            accent: true,
                           ),
                         ],
                       ),

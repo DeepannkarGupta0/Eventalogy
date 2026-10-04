@@ -196,7 +196,7 @@ class _AdminLocationsTabState extends State<AdminLocationsTab> {
                 return const Center(child: CircularProgressIndicator());
               }
               if (snapshot.hasError) {
-                return Center(child: Text('Error: \${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
+                return Center(child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent)));
               }
               
               final locations = snapshot.data ?? [];
@@ -213,8 +213,8 @@ class _AdminLocationsTabState extends State<AdminLocationsTab> {
                     color: AppColors.surface,
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
-                      title: Text('\${loc.city}, \${loc.state}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      subtitle: Text('\${loc.country} - \${loc.pincode}\\nLat: \${loc.latitude}, Lng: \${loc.longitude}', style: const TextStyle(color: AppColors.textSecondary)),
+                      title: Text('${loc.city}, ${loc.state}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      subtitle: Text('${loc.country} - ${loc.pincode}\nLat: ${loc.latitude}, Lng: ${loc.longitude}', style: const TextStyle(color: AppColors.textSecondary)),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [

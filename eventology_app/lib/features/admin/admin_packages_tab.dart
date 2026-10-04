@@ -26,7 +26,7 @@ class _AdminPackagesTabState extends State<AdminPackagesTab> {
           child: StreamBuilder<List<PackageModel>>(
             stream: PackageRepository.streamPackages(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) return Center(child: Text('Error: \${snapshot.error}'));
+              if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
               var packages = snapshot.data!;
@@ -102,7 +102,7 @@ class _AdminPackagesTabState extends State<AdminPackagesTab> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Services: \${pkg.serviceIds.length}'),
+            Text('Services: ${pkg.serviceIds.length}'),
             Text("Price: ₹${pkg.price} | Discount: ${pkg.discount != null ? '₹${pkg.discount}' : 'None'}"),
             Text("Status: ${pkg.active ? 'ACTIVE' : 'INACTIVE'}"),
           ],

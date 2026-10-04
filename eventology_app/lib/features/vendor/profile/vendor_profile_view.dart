@@ -266,6 +266,39 @@ class VendorProfileView extends StatelessWidget {
                   ),
                   
                   const SizedBox(height: 32),
+                  // Manage Portfolio / Upload Photos Button
+                  const Text(
+                    'PORTFOLIO',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Cloud Storage image picker launching soon!'),
+                            backgroundColor: AppColors.primary,
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add_photo_alternate, color: Colors.black),
+                      label: const Text('Upload Portfolio Photos', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(

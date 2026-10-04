@@ -28,7 +28,7 @@ class _AdminVendorsTabState extends State<AdminVendorsTab> {
           child: StreamBuilder<List<VendorModel>>(
             stream: VendorRepository.streamVendors(),
             builder: (context, snapshot) {
-              if (snapshot.hasError) return Center(child: Text('Error: \${snapshot.error}'));
+              if (snapshot.hasError) return Center(child: Text('Error: ${snapshot.error}'));
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
               var vendors = snapshot.data!;
@@ -118,8 +118,9 @@ class _AdminVendorsTabState extends State<AdminVendorsTab> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Owner: \${vendor.ownerName} | UserId: \${vendor.userId}'),
-            Text('Categories: \${vendor.categoryIds.length} | Services: \${vendor.serviceIds?.length ?? 0}'),
+            Text('Owner: ${vendor.ownerName} | UserId: ${vendor.userId}'),
+            Text('Categories: ${vendor.categoryIds.length} | Services: ${vendor.serviceIds?.length ?? 0}'),
+            Text('GST No: ${vendor.gstNumber ?? 'Not Provided'}'),
             Text("Status: ${vendor.status.toUpperCase()} | ${vendor.verified ? 'VERIFIED' : 'UNVERIFIED'}"),
           ],
         ),
@@ -199,6 +200,8 @@ class _VendorFormDialogState extends State<_VendorFormDialog> {
   final _userIdCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
+  final _gstCtrl = TextEditingController();
+  final _descriptionCtrl = TextEditingController();
   
   String _status = 'pending';
   String? _pricingModel;
@@ -223,6 +226,8 @@ class _VendorFormDialogState extends State<_VendorFormDialog> {
       _userIdCtrl.text = widget.vendor!.userId;
       _emailCtrl.text = widget.vendor!.email ?? '';
       _phoneCtrl.text = widget.vendor!.phone ?? '';
+      _gstCtrl.text = widget.vendor!.gstNumber ?? '';
+      _descriptionCtrl.text = widget.vendor!.description ?? '';
       _status = widget.vendor!.status;
       _pricingModel = widget.vendor!.pricingModel;
       _verified = widget.vendor!.verified;
@@ -287,8 +292,17 @@ class _VendorFormDialogState extends State<_VendorFormDialog> {
                 decoration: const InputDecoration(labelText: 'Email (Optional)'),
               ),
               TextFormField(
+                controller: _descriptionCtrl,
+                decoration: const InputDecoration(labelText: 'Description (Optional)'),
+                maxLines: 2,
+              ),
+              TextFormField(
                 controller: _phoneCtrl,
                 decoration: const InputDecoration(labelText: 'Phone (Optional)'),
+              ),
+              TextFormField(
+                controller: _gstCtrl,
+                decoration: const InputDecoration(labelText: 'GST Number (Optional)'),
               ),
               DropdownButtonFormField<String>(
                 value: _status,
@@ -398,6 +412,7 @@ class _VendorFormDialogState extends State<_VendorFormDialog> {
       userId: _userIdCtrl.text.trim(),
       businessName: _businessNameCtrl.text.trim(),
       ownerName: _ownerNameCtrl.text.trim(),
+      description: _descriptionCtrl.text.trim().isEmpty ? null : _descriptionCtrl.text.trim(),
       email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
       phone: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
       status: _status,
@@ -406,6 +421,7 @@ class _VendorFormDialogState extends State<_VendorFormDialog> {
       categoryIds: _selectedCategories,
       serviceIds: _selectedServices.isNotEmpty ? _selectedServices : null,
       locationId: _selectedLocation,
+      gstNumber: _gstCtrl.text.trim().isEmpty ? null : _gstCtrl.text.trim(),
       createdAt: widget.vendor?.createdAt ?? Timestamp.now(),
     );
 

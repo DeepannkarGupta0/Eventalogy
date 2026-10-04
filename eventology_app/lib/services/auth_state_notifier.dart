@@ -17,6 +17,14 @@ class AuthStateNotifier extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
 
   AuthStateNotifier() {
+    // Failsafe: if Firebase Auth takes longer than 3 seconds to emit an event, unblock the UI.
+    Future.delayed(const Duration(seconds: 3), () {
+      if (_isLoading) {
+        _isLoading = false;
+        notifyListeners();
+      }
+    });
+
     _auth.idTokenChanges().listen((User? user) async {
       _user = user;
       
@@ -75,6 +83,12 @@ class AuthStateNotifier extends ChangeNotifier {
     }
     
     _isLoading = false;
+    notifyListeners();
+  }
+  
+  /// FOR DEVELOPMENT ONLY: Force the role locally
+  void setTestRole(String newRole) {
+    _role = newRole;
     notifyListeners();
   }
 }

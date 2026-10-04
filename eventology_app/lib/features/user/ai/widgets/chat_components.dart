@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../models/agent_models.dart';
 
@@ -27,7 +28,11 @@ class AIChatHeader extends StatelessWidget implements PreferredSizeWidget {
               color: AppColors.primary.withOpacity(0.1),
               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
             ),
-            child: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 20),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: AppColors.primary,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Column(
@@ -35,11 +40,19 @@ class AIChatHeader extends StatelessWidget implements PreferredSizeWidget {
             children: [
               const Text(
                 'Eventology Architect',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               Row(
                 children: [
-                  const Icon(Icons.sync, color: AppColors.textSecondary, size: 12),
+                  const Icon(
+                    Icons.sync,
+                    color: AppColors.textSecondary,
+                    size: 12,
+                  ),
                   const SizedBox(width: 4),
                   WorkflowStatusIndicator(stageName: stageName),
                 ],
@@ -49,15 +62,16 @@ class AIChatHeader extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: Colors.white,
+          size: 20,
+        ),
         onPressed: onBackPressed,
       ),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(1),
-        child: Container(
-          color: AppColors.glassBorder,
-          height: 1,
-        ),
+        child: Container(color: AppColors.glassBorder, height: 1),
       ),
     );
   }
@@ -75,7 +89,11 @@ class WorkflowStatusIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       stageName,
-      style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+      style: const TextStyle(
+        fontSize: 12,
+        color: AppColors.textSecondary,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 }
@@ -97,7 +115,10 @@ class UserMessageBubble extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF2A2A2E),
                   borderRadius: const BorderRadius.only(
@@ -112,12 +133,17 @@ class UserMessageBubble extends StatelessWidget {
                       color: Colors.black.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
-                    )
+                    ),
                   ],
                 ),
                 child: Text(
                   content,
-                  style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5, fontWeight: FontWeight.w500),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    height: 1.5,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ),
@@ -133,10 +159,15 @@ class AIMessageBubble extends StatelessWidget {
 
   const AIMessageBubble({super.key, required this.content});
 
+  bool get _isBudgetRelated =>
+      content.toLowerCase().contains('budget') ||
+      content.toLowerCase().contains('allocation') ||
+      content.toLowerCase().contains('estimate');
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 24),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -147,41 +178,205 @@ class AIMessageBubble extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.surface,
-              border: Border.all(color: AppColors.glassBorder),
+              border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.2),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            child: const Icon(Icons.smart_toy, color: AppColors.primary, size: 16),
+            child: const Icon(
+              Icons.auto_awesome,
+              color: AppColors.primary,
+              size: 16,
+            ),
           ),
           Flexible(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 800), // P2: Desktop responsiveness
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1C1C1F),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                    bottomLeft: Radius.circular(4),
-                    bottomRight: Radius.circular(16),
+              constraints: const BoxConstraints(maxWidth: 800),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1C1C1F),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                        bottomLeft: Radius.circular(4),
+                        bottomRight: Radius.circular(20),
+                      ),
+                      border: Border.all(color: AppColors.glassBorder),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 15,
+                          offset: const Offset(0, 5),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      content.isEmpty ? "..." : content,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        height: 1.6,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
                   ),
-                  border: Border.all(color: AppColors.glassBorder),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    )
+                  if (_isBudgetRelated) ...[
+                    const SizedBox(height: 12),
+                    _buildBudgetMasteryCard(),
                   ],
-                ),
-                child: Text(
-                  content.isEmpty ? "..." : content, // Fallback if empty
-                  style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5, fontWeight: FontWeight.w500),
-                ),
+                ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBudgetMasteryCard() {
+    return Container(
+      width: 320,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.surface, AppColors.primary.withOpacity(0.05)],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'BUDGET MASTERY',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              Icon(
+                Icons.pie_chart_outline,
+                color: AppColors.primary.withOpacity(0.8),
+                size: 16,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildProgressRow('Venue & Stay', '40%', 0.4, Colors.white),
+          const SizedBox(height: 12),
+          _buildProgressRow('Catering', '30%', 0.3, Colors.white70),
+          const SizedBox(height: 12),
+          _buildProgressRow('Photography', '15%', 0.15, Colors.white54),
+          const SizedBox(height: 12),
+          _buildProgressRow('Decor & Extras', '15%', 0.15, Colors.white38),
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.check_circle,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Optimal Allocation Achieved',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressRow(
+    String label,
+    String percentText,
+    double percent,
+    Color color,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 12,
+              ),
+            ),
+            Text(
+              percentText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Stack(
+          children: [
+            Container(
+              height: 6,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  height: 6,
+                  width: constraints.maxWidth * percent,
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: BorderRadius.circular(3),
+                    boxShadow: [
+                      BoxShadow(color: color.withOpacity(0.5), blurRadius: 4),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -206,7 +401,11 @@ class ThinkingIndicator extends StatelessWidget {
               color: AppColors.surface,
               border: Border.all(color: AppColors.glassBorder),
             ),
-            child: Icon(Icons.smart_toy, color: AppColors.primary.withOpacity(0.5), size: 16),
+            child: Icon(
+              Icons.smart_toy,
+              color: AppColors.primary.withOpacity(0.5),
+              size: 16,
+            ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -225,14 +424,21 @@ class ThinkingIndicator extends StatelessWidget {
               children: [
                 Text(
                   stageName,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, fontStyle: FontStyle.italic),
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
                 const SizedBox(width: 8),
                 const SizedBox(
                   width: 12,
                   height: 12,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                )
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -265,7 +471,7 @@ class ApprovalRequestCard extends StatelessWidget {
             color: AppColors.primary.withOpacity(0.05),
             blurRadius: 20,
             spreadRadius: 2,
-          )
+          ),
         ],
       ),
       child: Column(
@@ -283,8 +489,15 @@ class ApprovalRequestCard extends StatelessWidget {
                 const Icon(Icons.verified, color: AppColors.primary, size: 18),
                 const SizedBox(width: 8),
                 const Expanded(
-                  child: Text('YOUR EVENT PLAN IS READY', 
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 1.0)),
+                  child: Text(
+                    'YOUR EVENT PLAN IS READY',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -294,7 +507,10 @@ class ApprovalRequestCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(approval.summary, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                Text(
+                  approval.summary,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
                 const SizedBox(height: 16),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -306,9 +522,21 @@ class ApprovalRequestCard extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Estimated Total', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                      Text('₹${approval.totalEstimatedCost.toStringAsFixed(0)}', 
-                        style: const TextStyle(color: AppColors.primary, fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Text(
+                        'Estimated Total',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        '₹${approval.totalEstimatedCost.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -318,15 +546,23 @@ class ApprovalRequestCard extends StatelessWidget {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {
-                          onRespond(false, "I want to change some details before approving.");
+                          onRespond(
+                            false,
+                            "I want to change some details before approving.",
+                          );
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: AppColors.glassBorder),
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
-                        child: const Text('Change Something', style: TextStyle(fontSize: 13)),
+                        child: const Text(
+                          'Change Something',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -339,14 +575,22 @@ class ApprovalRequestCard extends StatelessWidget {
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.black,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           elevation: 0,
                         ),
-                        child: const Text('Approve & Book', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Approve & Book',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
@@ -401,9 +645,15 @@ class AIChatInputBox extends StatelessWidget {
                 onSubmitted: isThinking ? null : onSend,
                 decoration: const InputDecoration(
                   hintText: 'Type your response...',
-                  hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                  hintStyle: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 15,
+                  ),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
@@ -417,15 +667,21 @@ class AIChatInputBox extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isThinking ? AppColors.glassBorder : AppColors.primary,
                 shape: BoxShape.circle,
-                boxShadow: isThinking ? null : [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  )
-                ],
+                boxShadow: isThinking
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
-              child: const Icon(Icons.send_rounded, color: Colors.black, size: 20),
+              child: const Icon(
+                Icons.send_rounded,
+                color: Colors.black,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -470,7 +726,7 @@ class ErrorMessageCard extends StatelessWidget {
             onPressed: onDismiss,
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
-          )
+          ),
         ],
       ),
     );

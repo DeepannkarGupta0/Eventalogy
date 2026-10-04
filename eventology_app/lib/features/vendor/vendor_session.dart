@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/vendor_model.dart';
 import '../../services/firestore/vendor_repository.dart';
 
@@ -74,17 +75,21 @@ class _VendorAuthWrapperState extends State<VendorAuthWrapper> {
           );
         }
 
-        final vendor = snapshot.data;
-        if (vendor == null) {
-          return const Scaffold(
-            body: Center(
-              child: Text(
-                "Vendor profile not found.\nPlease contact Eventology support.",
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
+        final vendor = snapshot.data ?? VendorModel(
+          vendorId: 'test_vendor_id',
+          userId: FirebaseAuth.instance.currentUser?.uid ?? 'test_user',
+          businessName: 'Mock Vendor (Preview Mode)',
+          ownerName: 'Admin',
+          status: 'active',
+          verified: true,
+          categoryIds: [],
+          createdAt: Timestamp.now(),
+          portfolioImages: [
+            'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?q=80&w=2069&auto=format&fit=crop',
+            'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop'
+          ],
+          description: 'This is a mock vendor profile so you can preview the dashboard layout without needing a real vendor account attached to your admin login!',
+        );
 
         return VendorSession(
           vendor: vendor,
