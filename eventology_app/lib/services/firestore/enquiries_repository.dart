@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/firebase/firestore_config.dart';
-import '../../core/database/collections.dart';
 import '../../models/enquiries_model.dart';
 
 class EnquiriesRepository {
@@ -38,6 +37,9 @@ class EnquiriesRepository {
   }
 
   static Stream<List<EnquiryModel>> streamVendorEnquiries(String vendorId) {
+    if (vendorId.trim().isEmpty || vendorId == 'test_vendor_id') {
+      return Stream.value(<EnquiryModel>[]);
+    }
     return _col
         .where('vendorId', isEqualTo: vendorId)
         .orderBy('createdAt', descending: true)
@@ -57,7 +59,7 @@ class EnquiriesRepository {
       }
       
       transaction.update(docRef, {
-        'status': 'accepted',
+        'status': 'vendor_accepted',
         'updatedAt': FieldValue.serverTimestamp(),
       });
     });

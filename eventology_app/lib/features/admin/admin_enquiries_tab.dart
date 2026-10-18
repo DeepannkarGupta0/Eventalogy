@@ -99,14 +99,12 @@ class _AdminEnquiriesTabState extends State<AdminEnquiriesTab> {
             value: _statusFilter,
             items: [
               'All',
-              'Pending',
-              'Sent',
-              'Responded',
-              'Quoted',
-              'Accepted',
-              'Rejected',
-              'Cancelled',
-            ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              'pending',
+              'vendor_accepted',
+              'declined',
+              'sent',
+              'cancelled',
+            ].map((e) => DropdownMenuItem(value: e, child: Text(e == 'All' ? 'All' : e.replaceAll('_', ' ').toUpperCase()))).toList(),
             onChanged: (val) => setState(() => _statusFilter = val!),
           ),
           const SizedBox(width: 16),
@@ -296,20 +294,32 @@ class _AdminEnquiriesTabState extends State<AdminEnquiriesTab> {
   void _showDialog(EnquiryModel? item) {
     showDialog(
       context: context,
-      builder: (context) => _EnquiryFormDialog(item: item),
+      builder: (context) => EnquiryFormDialog(item: item),
     );
   }
 }
 
-class _EnquiryFormDialog extends StatefulWidget {
+class EnquiryFormDialog extends StatefulWidget {
   final EnquiryModel? item;
-  const _EnquiryFormDialog({this.item});
+  final List<Map<String, dynamic>>? initialEvents;
+  final List<Map<String, dynamic>>? initialVendors;
+  final List<Map<String, dynamic>>? initialServices;
+  final Future<void> Function(EnquiryModel item)? onSave;
+
+  const EnquiryFormDialog({
+    super.key,
+    this.item,
+    this.initialEvents,
+    this.initialVendors,
+    this.initialServices,
+    this.onSave,
+  });
 
   @override
-  State<_EnquiryFormDialog> createState() => _EnquiryFormDialogState();
+  State<EnquiryFormDialog> createState() => _EnquiryFormDialogState();
 }
 
-class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
+class _EnquiryFormDialogState extends State<EnquiryFormDialog> {
   final _formKey = GlobalKey<FormState>();
   final _customerCtrl = TextEditingController();
   final _msgCtrl = TextEditingController();
@@ -326,6 +336,8 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
   List<Map<String, dynamic>> _services = [];
   bool _isLoadingData = true;
 
+  bool get _isVenueEnquiry => widget.item?.requirements?['type'] == 'venue';
+
   @override
   void initState() {
     super.initState();
@@ -339,7 +351,40 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
     _fetchMasterData();
   }
 
+  @override
+  void dispose() {
+    _customerCtrl.dispose();
+    _msgCtrl.dispose();
+    _reqsCtrl.dispose();
+    super.dispose();
+  }
+
+  void _syncInitialSelections() {
+    if (widget.item != null) {
+      if (_events.any((e) => e['id'] == widget.item!.eventId)) {
+        _selectedEvent = widget.item!.eventId;
+      }
+      if (_vendors.any((e) => e['id'] == widget.item!.vendorId)) {
+        _selectedVendor = widget.item!.vendorId;
+      }
+      if (_services.any((e) => e['id'] == widget.item!.serviceId)) {
+        _selectedService = widget.item!.serviceId;
+      }
+    }
+  }
+
   Future<void> _fetchMasterData() async {
+    if (widget.initialEvents != null ||
+        widget.initialVendors != null ||
+        widget.initialServices != null) {
+      _events = widget.initialEvents ?? [];
+      _vendors = widget.initialVendors ?? [];
+      _services = widget.initialServices ?? [];
+      _syncInitialSelections();
+      if (mounted) setState(() => _isLoadingData = false);
+      return;
+    }
+
     try {
       final db = FirestoreConfig.instance;
 
@@ -358,16 +403,9 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
           .map((d) => {'id': d.id, 'name': d.data()['name'] ?? d.id})
           .toList();
 
-      if (widget.item != null) {
-        if (_events.any((e) => e['id'] == widget.item!.eventId))
-          _selectedEvent = widget.item!.eventId;
-        if (_vendors.any((e) => e['id'] == widget.item!.vendorId))
-          _selectedVendor = widget.item!.vendorId;
-        if (_services.any((e) => e['id'] == widget.item!.serviceId))
-          _selectedService = widget.item!.serviceId;
-      }
+      _syncInitialSelections();
     } catch (e) {
-      debugPrint("Error fetching master data: $e");
+      debugPrint('Error fetching master data: ');
     } finally {
       if (mounted) setState(() => _isLoadingData = false);
     }
@@ -384,24 +422,72 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
       );
     }
 
+    final String titleText;
+    if (widget.item == null) {
+      titleText = 'New Enquiry';
+    } else if (_isVenueEnquiry) {
+      titleText = 'Edit Venue Enquiry';
+    } else {
+      titleText = 'Edit Enquiry';
+    }
+
     return AlertDialog(
-      title: Text(widget.item == null ? 'New Enquiry' : 'Edit Enquiry'),
+      title: Text(titleText),
       content: SingleChildScrollView(
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_isVenueEnquiry)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.location_city, color: Colors.amber, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.item?.requirements?['venueName'] ??
+                                  widget.item?.requirements?['venueId'] ??
+                                  'Venue Enquiry',
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            ),
+                            if (widget.item?.requirements?['guestCount'] != null)
+                              Text(
+                                'Guests: ${widget.item!.requirements!["guestCount"]}',
+                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               TextFormField(
+                key: const Key('enquiry_customer_id_field'),
                 controller: _customerCtrl,
                 decoration: const InputDecoration(
                   labelText: 'Customer ID (User ID)',
                 ),
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               DropdownButtonFormField<String>(
+                key: const Key('enquiry_event_dropdown'),
                 value: _selectedEvent,
-                decoration: const InputDecoration(labelText: 'Event'),
+                decoration: InputDecoration(
+                  labelText: _isVenueEnquiry ? 'Event (Optional for Venue)' : 'Event',
+                ),
                 items: _events
                     .map(
                       (e) => DropdownMenuItem<String>(
@@ -411,11 +497,17 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
                     )
                     .toList(),
                 onChanged: (v) => setState(() => _selectedEvent = v),
-                validator: (v) => v == null ? 'Required' : null,
+                validator: (v) {
+                  if (_isVenueEnquiry) return null;
+                  return (v == null || v.isEmpty) ? 'Required' : null;
+                },
               ),
               DropdownButtonFormField<String>(
+                key: const Key('enquiry_vendor_dropdown'),
                 value: _selectedVendor,
-                decoration: const InputDecoration(labelText: 'Vendor'),
+                decoration: InputDecoration(
+                  labelText: _isVenueEnquiry ? 'Vendor (N/A for Venue)' : 'Vendor',
+                ),
                 items: _vendors
                     .map(
                       (e) => DropdownMenuItem<String>(
@@ -424,12 +516,18 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
                       ),
                     )
                     .toList(),
-                onChanged: (v) => setState(() => _selectedVendor = v),
-                validator: (v) => v == null ? 'Required' : null,
+                onChanged: _isVenueEnquiry ? null : (v) => setState(() => _selectedVendor = v),
+                validator: (v) {
+                  if (_isVenueEnquiry) return null;
+                  return (v == null || v.isEmpty) ? 'Required' : null;
+                },
               ),
               DropdownButtonFormField<String>(
+                key: const Key('enquiry_service_dropdown'),
                 value: _selectedService,
-                decoration: const InputDecoration(labelText: 'Service'),
+                decoration: InputDecoration(
+                  labelText: _isVenueEnquiry ? 'Service (N/A for Venue)' : 'Service',
+                ),
                 items: _services
                     .map(
                       (e) => DropdownMenuItem<String>(
@@ -438,8 +536,11 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
                       ),
                     )
                     .toList(),
-                onChanged: (v) => setState(() => _selectedService = v),
-                validator: (v) => v == null ? 'Required' : null,
+                onChanged: _isVenueEnquiry ? null : (v) => setState(() => _selectedService = v),
+                validator: (v) {
+                  if (_isVenueEnquiry) return null;
+                  return (v == null || v.isEmpty) ? 'Required' : null;
+                },
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -457,34 +558,38 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
                 },
               ),
               TextFormField(
+                key: const Key('enquiry_message_field'),
                 controller: _msgCtrl,
                 decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 3,
-                validator: (v) => v!.isEmpty ? 'Required' : null,
+                validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
               DropdownButtonFormField<String>(
+                key: const Key('enquiry_status_dropdown'),
                 value: _status,
                 decoration: const InputDecoration(labelText: 'Status'),
-                items:
-                    [
-                          'pending',
-                          'sent',
-                          'responded',
-                          'quoted',
-                          'accepted',
-                          'rejected',
-                          'cancelled',
-                        ]
-                        .map(
-                          (e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.toUpperCase()),
-                          ),
-                        )
-                        .toList(),
-                onChanged: (v) => setState(() => _status = v!),
+                items: [
+                  'pending',
+                  'sent',
+                  'responded',
+                  'quoted',
+                  'accepted',
+                  'rejected',
+                  'cancelled',
+                ]
+                    .map(
+                      (e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e.toUpperCase()),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _status = v);
+                },
               ),
               TextFormField(
+                key: const Key('enquiry_requirements_field'),
                 controller: _reqsCtrl,
                 decoration: const InputDecoration(
                   labelText: 'Requirements/Notes (Optional)',
@@ -500,7 +605,11 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancel'),
         ),
-        ElevatedButton(onPressed: _save, child: const Text('Save')),
+        ElevatedButton(
+          key: const Key('enquiry_save_button'),
+          onPressed: _save,
+          child: const Text('Save'),
+        ),
       ],
     );
   }
@@ -508,32 +617,42 @@ class _EnquiryFormDialogState extends State<_EnquiryFormDialog> {
   void _save() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final Map<String, dynamic> updatedRequirements =
+        Map<String, dynamic>.from(widget.item?.requirements ?? {});
+    final notes = _reqsCtrl.text.trim();
+    if (notes.isNotEmpty) {
+      updatedRequirements['notes'] = notes;
+    } else {
+      updatedRequirements.remove('notes');
+    }
+
     final item = EnquiryModel(
       enquiryId: widget.item?.enquiryId ?? '',
-      eventId: _selectedEvent!,
+      eventId: _selectedEvent ?? (_isVenueEnquiry ? (widget.item?.eventId ?? '') : ''),
       customerId: _customerCtrl.text.trim(),
-      vendorId: _selectedVendor!,
-      serviceId: _selectedService!,
+      vendorId: _selectedVendor ?? (_isVenueEnquiry ? (widget.item?.vendorId ?? '') : ''),
+      serviceId: _selectedService ?? (_isVenueEnquiry ? (widget.item?.serviceId ?? '') : ''),
       message: _msgCtrl.text.trim(),
-      requirements: _reqsCtrl.text.trim().isEmpty
-          ? null
-          : {'notes': _reqsCtrl.text.trim()},
+      requirements: updatedRequirements.isEmpty ? null : updatedRequirements,
       requestedDate: Timestamp.fromDate(_reqDate),
       status: _status,
       createdAt: widget.item?.createdAt ?? Timestamp.now(),
     );
 
     try {
-      if (widget.item == null) {
+      if (widget.onSave != null) {
+        await widget.onSave!(item);
+      } else if (widget.item == null) {
         await EnquiriesRepository.create(item);
       } else {
         await EnquiriesRepository.update(item);
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 }
