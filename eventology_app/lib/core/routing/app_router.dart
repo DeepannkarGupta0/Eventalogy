@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/login_screen.dart';
@@ -28,6 +28,9 @@ import '../../features/vendor/bookings/vendor_bookings_view.dart';
 import '../../features/vendor/profile/vendor_profile_view.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../services/auth_state_notifier.dart';
+import '../../services/demo_session_notifier.dart';
+import '../../features/demo/screens/user_demo_screen.dart';
+import '../../features/demo/screens/vendor_demo_screen.dart';
 import '../../features/user/whatsapp/whatsapp_link_screen.dart';
 import '../../features/user/profile/become_vendor_screen.dart';
 
@@ -43,7 +46,7 @@ class LoadingScreen extends StatelessWidget {
 
 final appRouter = GoRouter(
   initialLocation: '/',
-  refreshListenable: authStateNotifier,
+  refreshListenable: Listenable.merge([authStateNotifier, demoSessionNotifier]),
   redirect: (context, state) {
     // If it's the splash screen, let it be. Splash screen will handle its own routing.
     if (state.matchedLocation == '/') {
@@ -60,31 +63,55 @@ final appRouter = GoRouter(
         state.matchedLocation == '/login' || state.matchedLocation == '/signup';
 
     // 1. Unauthenticated users must log in
-    if (!isLoggedIn && !isGoingToLoginOrSignup) {
+    if (!isLoggedIn) {
+      if (isGoingToLoginOrSignup || state.matchedLocation == '/loading') {
+        return null;
+      }
       return '/login';
     }
 
-    // 2. Authenticated users logic
-    if (isLoggedIn) {
-      // If trying to access login/signup or stuck on loading screen while already logged in
-      if (isGoingToLoginOrSignup || state.matchedLocation == '/loading') {
-        if (role == 'vendor') return '/vendor';
-        if (role == 'admin') return '/admin';
-        return '/home';
-      }
-
-      // Security Guard: Prevent normal users/vendors from accessing admin
-      if (state.matchedLocation.startsWith('/admin') && role != 'admin') {
-        return '/home';
-      }
-
-      // Security Guard: Prevent normal users from accessing vendor
-      if (state.matchedLocation.startsWith('/vendor') &&
-          role != 'vendor' &&
-          role != 'admin') {
-        return '/home';
-      }
+    // 2. Authenticated users: redirect away from login/signup/loading
+    if (isGoingToLoginOrSignup || state.matchedLocation == '/loading') {
+      if (role == 'admin') return '/admin';
+      if (role == 'vendor') return '/vendor';
+      return '/home';
     }
+
+    // 3. Admin Routing & Demo Mode
+    if (role == 'admin') {
+      if (state.matchedLocation == '/demo/user') {
+        return demoSessionNotifier.isUserDemo ? null : '/admin';
+      }
+      if (state.matchedLocation == '/demo/vendor') {
+        return demoSessionNotifier.isVendorDemo ? null : '/admin';
+      }
+      if (state.matchedLocation.startsWith('/admin')) {
+        return null;
+      }
+      // Admins are restricted to Admin Dashboard and active demos
+      return '/admin';
+    }
+
+    // 4. Non-admins cannot access Admin or Demo routes
+    if (state.matchedLocation.startsWith('/admin') ||
+        state.matchedLocation.startsWith('/demo')) {
+      if (role == 'vendor') return '/vendor';
+      return '/home';
+    }
+
+    // 5. Vendor Routing: Vendors must ONLY access vendor routes
+    if (role == 'vendor') {
+      if (!state.matchedLocation.startsWith('/vendor')) {
+        return '/vendor';
+      }
+      return null;
+    }
+
+    // 6. User Routing: Regular users must NOT access vendor operational routes
+    if (state.matchedLocation.startsWith('/vendor')) {
+      return '/become-vendor';
+    }
+
     return null;
   },
   routes: [
@@ -98,6 +125,14 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin',
       builder: (context, state) => const AdminDashboardScreen(),
+    ),
+    GoRoute(
+      path: '/demo/user',
+      builder: (context, state) => const UserDemoScreen(),
+    ),
+    GoRoute(
+      path: '/demo/vendor',
+      builder: (context, state) => const VendorDemoScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../services/auth_state_notifier.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -29,10 +30,18 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // Navigate after 2 seconds
+    // Navigate after 2 seconds to the verified role-specific landing screen
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        context.go('/home'); // Routes to home, which will be redirected to login if unauthenticated
+        if (!authStateNotifier.isAuthenticated) {
+          context.go('/login');
+        } else if (authStateNotifier.role == 'admin') {
+          context.go('/admin');
+        } else if (authStateNotifier.role == 'vendor') {
+          context.go('/vendor');
+        } else {
+          context.go('/home');
+        }
       }
     });
   }

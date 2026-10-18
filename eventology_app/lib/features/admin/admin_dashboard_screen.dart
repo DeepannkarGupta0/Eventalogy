@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../services/firestore/master_data_repository.dart';
+import '../../services/demo_session_notifier.dart';
 
 import 'admin_locations_tab.dart';
 import 'admin_services_tab.dart';
@@ -290,16 +291,35 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.primary,
-                      ),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.preview_rounded, color: AppColors.primary),
+                          tooltip: 'Open User Demo',
+                          onPressed: () {
+                            demoSessionNotifier.enterUserDemo();
+                            context.go('/demo/user');
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.storefront_rounded, color: AppColors.primary),
+                          tooltip: 'Open Vendor Demo',
+                          onPressed: () {
+                            demoSessionNotifier.enterVendorDemo();
+                            context.go('/demo/vendor');
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                          tooltip: 'Sign Out',
+                          onPressed: () async {
+                            final router = GoRouter.of(context);
+                            demoSessionNotifier.exitDemo();
+                            await FirebaseAuth.instance.signOut();
+                            router.go('/login');
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -564,17 +584,59 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.phone_iphone, color: AppColors.primary),
+            leading: const Icon(Icons.preview_rounded, color: AppColors.primary),
             title: const Text(
-              'Switch to User App',
+              'User Demo (Customer Preview)',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
+            subtitle: const Text(
+              'Read-only simulation â€¢ No mutations',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
             onTap: () {
-              Navigator.pop(context); // close drawer
-              context.go('/home'); // Go to the normal user experience
+              Navigator.pop(context);
+              demoSessionNotifier.enterUserDemo();
+              context.go('/demo/user');
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.storefront_rounded, color: AppColors.primary),
+            title: const Text(
+              'Vendor Demo (Partner Preview)',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: const Text(
+              'Approved & pending views â€¢ Simulated leads',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+            ),
+            onTap: () {
+              Navigator.pop(context);
+              demoSessionNotifier.enterVendorDemo();
+              context.go('/demo/vendor');
+            },
+          ),
+          const Divider(color: AppColors.glassBorder),
+          ListTile(
+            leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+            title: const Text(
+              'Sign Out',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            onTap: () async {
+              final router = GoRouter.of(context);
+              Navigator.pop(context);
+              demoSessionNotifier.exitDemo();
+              await FirebaseAuth.instance.signOut();
+              router.go('/login');
             },
           ),
           const Divider(color: AppColors.glassBorder),

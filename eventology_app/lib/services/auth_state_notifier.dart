@@ -1,11 +1,11 @@
-import 'firestore/vendor_repository.dart';
+﻿import 'firestore/vendor_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// A centralized state notifier that tracks both the authenticated user
 /// and their server-verified custom role (admin, vendor, user).
 class AuthStateNotifier extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth? _auth;
   
   User? _user;
   String _role = 'unauthorized';
@@ -18,6 +18,15 @@ class AuthStateNotifier extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
 
   AuthStateNotifier() {
+    try {
+      _auth = FirebaseAuth.instance;
+    } catch (_) {
+      // In testing environments where Firebase is not initialized
+      _auth = null;
+      _isLoading = false;
+      return;
+    }
+
     // Failsafe: if Firebase Auth takes longer than 3 seconds to emit an event, unblock the UI.
     Future.delayed(const Duration(seconds: 3), () {
       if (_isLoading) {
@@ -26,7 +35,7 @@ class AuthStateNotifier extends ChangeNotifier {
       }
     });
 
-    _auth.idTokenChanges().listen((User? user) async {
+    _auth?.idTokenChanges().listen((User? user) async {
       _user = user;
       
       if (user == null) {

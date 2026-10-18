@@ -1,4 +1,4 @@
-import '../../services/auth_state_notifier.dart';
+﻿import '../../services/auth_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -394,62 +394,86 @@ class _VendorPendingApprovalViewState extends State<VendorPendingApprovalView> {
               ),
               const SizedBox(height: 24),
 
-              // Title
-              const Text(
-                'Registration Pending Approval',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 0.3,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
+              // Dynamic status titles and messaging
+              Builder(
+                builder: (context) {
+                  final isRejected = vendor.status == 'rejected';
+                  final isSuspended = vendor.status == 'suspended' || vendor.status == 'inactive';
+                  final statusColor = isRejected
+                      ? Colors.redAccent
+                      : isSuspended
+                          ? Colors.orangeAccent
+                          : AppColors.primary;
 
-              // Subtitle
-              Text(
-                'Welcome, ${vendor.businessName.isNotEmpty ? vendor.businessName : "Partner"}. Your vendor application has been submitted and is currently being reviewed by the Eventology Administration team.',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
+                  final title = isRejected
+                      ? 'Application Needs Attention / Rejected'
+                      : isSuspended
+                          ? 'Account Suspended or Inactive'
+                          : 'Registration Pending Approval';
 
-              // Status Chip
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF241C06),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        shape: BoxShape.circle,
+                  final subtitle = isRejected
+                      ? 'Your vendor partner application could not be approved with the current details. Please review your business credentials or reach out to partner support.'
+                      : isSuspended
+                          ? 'Your vendor account is temporarily suspended or inactive. Please contact the administrator team to restore full operational access.'
+                          : 'Welcome, ${vendor.businessName.isNotEmpty ? vendor.businessName : "Partner"}. Your vendor application has been submitted and is currently being reviewed by the Eventology Administration team.';
+
+                  return Column(
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 0.3,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'STATUS: ${vendor.status.toUpperCase()}',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
+                      const SizedBox(height: 12),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: statusColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'STATUS: ${vendor.status.toUpperCase()}',
+                              style: TextStyle(
+                                color: statusColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 28),
 
