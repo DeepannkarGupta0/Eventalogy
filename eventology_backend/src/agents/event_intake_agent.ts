@@ -1,4 +1,4 @@
-import { z } from "zod";
+﻿import { z } from "zod";
 import { SystemMessage, AIMessage, ToolMessage } from "@langchain/core/messages";
 import { getLLMProvider } from "../llm/provider";
 import { logAgentAction } from "../services/agent_log_service";
@@ -89,6 +89,27 @@ ${JSON.stringify(state.eventRequirements, null, 2)}`;
       }
       
       if (!response.tool_calls?.length) {
+        // If the model responded directly with conversational text instead of calling submit_intake_results,
+        // force a structured submission so requirements and nextQuestion are captured
+        try {
+          const submitModel = (llm as any).bindTools([
+            {
+              name: "submit_intake_results",
+              description: "MUST be called to finalize your response. Call this when you have extracted requirements or need to ask the user a follow-up question.",
+              schema: IntakeOutputSchema,
+            }
+          ], { tool_choice: { type: "function", function: { name: "submit_intake_results" } } });
+          const forcedResponse = await submitModel.invoke(messages) as AIMessage;
+          if (forcedResponse.tool_calls?.length) {
+            const submitCall = forcedResponse.tool_calls.find(tc => tc.name === "submit_intake_results");
+            if (submitCall) {
+              finalExtraction = submitCall.args;
+              break;
+            }
+          }
+        } catch (_) {
+          // Ignore tool force errors and proceed to fallback
+        }
         break; // Stop if the model refuses to call tools
       }
       
@@ -124,13 +145,52 @@ ${JSON.stringify(state.eventRequirements, null, 2)}`;
           // ignore parse errors
         }
       }
+
+      // Extract basic heuristic requirements from conversation text if missing
+      const combinedText = (state.conversationHistory || [])
+        .map((m: any) => typeof m.content === 'string' ? m.content : '')
+        .join(' ') + ' ' + (state.userMessage || '');
+      const extractedFallback: any = { ...(state.eventRequirements || {}) };
+      if (!extractedFallback.eventType) {
+        const typeMatch = combinedText.match(/\b(birthday(?:\s+party)?|wedding|anniversary|corporate|conference|reception)\b/i);
+        if (typeMatch) extractedFallback.eventType = typeMatch[1];
+      }
+      if (!extractedFallback.guestCount) {
+        const guestMatch = combinedText.match(/(\d+)\s*(?:people|guests|pax|persons)/i);
+        if (guestMatch) extractedFallback.guestCount = parseInt(guestMatch[1], 10);
+      }
+      if (!extractedFallback.location) {
+        const locMatch = combinedText.match(/\b(?:in|at)\s+([A-Za-z]+)\b/i);
+        if (locMatch) extractedFallback.location = locMatch[1];
+      }
+
       finalExtraction = {
-        extractedRequirements: state.eventRequirements || {},
+        extractedRequirements: extractedFallback,
         missingInformation: ["Unknown (fallback)"],
         nextQuestion: parsedQuestion || "Could you provide more details?",
         isComplete: false,
         confidence: 0,
       };
+    }
+
+    // Complement any missing basic requirements from user input if explicitly mentioned
+    const rawInput = (state.conversationHistory || [])
+      .map((m: any) => typeof m.content === 'string' ? m.content : '')
+      .join(' ') + ' ' + (state.userMessage || '');
+    if (!finalExtraction.extractedRequirements) {
+      finalExtraction.extractedRequirements = {};
+    }
+    if (!finalExtraction.extractedRequirements.eventType) {
+      const typeMatch = rawInput.match(/\b(birthday(?:\s+party)?|wedding|anniversary|corporate|conference|reception)\b/i);
+      if (typeMatch) finalExtraction.extractedRequirements.eventType = typeMatch[1];
+    }
+    if (!finalExtraction.extractedRequirements.guestCount) {
+      const guestMatch = rawInput.match(/(\d+)\s*(?:people|guests|pax|persons)/i);
+      if (guestMatch) finalExtraction.extractedRequirements.guestCount = parseInt(guestMatch[1], 10);
+    }
+    if (!finalExtraction.extractedRequirements.location) {
+      const locMatch = rawInput.match(/\b(?:in|at)\s+([A-Za-z]+)\b/i);
+      if (locMatch) finalExtraction.extractedRequirements.location = locMatch[1];
     }
 
     await logAgentAction(state.workflowId, "event_intake_agent", "complete", "success", { isComplete: finalExtraction.isComplete, confidence: finalExtraction.confidence, durationMs: Date.now() - startTime });

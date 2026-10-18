@@ -18,11 +18,22 @@ class _VendorEnquiriesViewState extends State<VendorEnquiriesView> {
   @override
   Widget build(BuildContext context) {
     final vendor = VendorSession.of(context);
+    if (vendor.vendorId.trim().isEmpty || vendor.vendorId == 'test_vendor_id') {
+      return const Scaffold(
+        backgroundColor: AppColors.background,
+        body: Center(
+          child: Text(
+            'No valid vendor profile linked to this session.',
+            style: TextStyle(color: AppColors.textSecondary),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background.withOpacity(0.95),
+        backgroundColor: AppColors.background.withValues(alpha: 0.95),
         elevation: 0,
         centerTitle: true,
         title: const Text(

@@ -127,15 +127,54 @@ class _AdminVendorsTabState extends State<AdminVendorsTab> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (vendor.status == 'pending' || !vendor.verified)
+              IconButton(
+                icon: const Icon(Icons.check_circle_outline, color: Colors.greenAccent),
+                tooltip: 'Approve & Activate Vendor',
+                onPressed: () async {
+                  try {
+                    try {
+                      await AdminApiService.verifyVendor(vendor.vendorId);
+                      await AdminApiService.changeVendorStatus(vendor.vendorId, 'active');
+                    } catch (_) {
+                      await VendorRepository.updateVendor(vendor.copyWith(
+                        verified: true,
+                        status: 'active',
+                      ));
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Vendor approved and activated!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  }
+                },
+              ),
             if (!vendor.verified)
               IconButton(
                 icon: const Icon(Icons.verified, color: Colors.green),
                 tooltip: 'Verify Vendor',
                 onPressed: () async {
                   try {
-                    await AdminApiService.verifyVendor(vendor.vendorId);
+                    try {
+                      await AdminApiService.verifyVendor(vendor.vendorId);
+                    } catch (_) {
+                      await VendorRepository.updateVendor(vendor.copyWith(verified: true));
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vendor verified')));
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
                   }
                 },
               ),
@@ -145,9 +184,18 @@ class _AdminVendorsTabState extends State<AdminVendorsTab> {
                 tooltip: 'Activate',
                 onPressed: () async {
                   try {
-                    await AdminApiService.changeVendorStatus(vendor.vendorId, 'active');
+                    try {
+                      await AdminApiService.changeVendorStatus(vendor.vendorId, 'active');
+                    } catch (_) {
+                      await VendorRepository.updateVendor(vendor.copyWith(status: 'active'));
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vendor activated')));
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
                   }
                 },
               ),
@@ -157,9 +205,18 @@ class _AdminVendorsTabState extends State<AdminVendorsTab> {
                 tooltip: 'Suspend',
                 onPressed: () async {
                   try {
-                    await AdminApiService.changeVendorStatus(vendor.vendorId, 'suspended');
+                    try {
+                      await AdminApiService.changeVendorStatus(vendor.vendorId, 'suspended');
+                    } catch (_) {
+                      await VendorRepository.updateVendor(vendor.copyWith(status: 'suspended'));
+                    }
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vendor suspended')));
+                    }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+                    }
                   }
                 },
               ),

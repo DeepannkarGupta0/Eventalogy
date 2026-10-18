@@ -1,13 +1,44 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../services/firestore/catalog_repository.dart';
 import '../../../../models/venue_model.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../services/auth_state_notifier.dart';
+import '../widgets/manual_enquiry_sheet.dart';
 
 class VenueDetailScreen extends StatelessWidget {
   final String venueId;
   const VenueDetailScreen({super.key, required this.venueId});
+
+  void _handleEnquiry(BuildContext context, VenueModel venue) async {
+    final user = authStateNotifier.user ?? FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please sign in to enquire about venue availability.'),
+          backgroundColor: AppColors.surfaceHighlight,
+          action: SnackBarAction(
+            label: 'Sign In',
+            textColor: AppColors.primary,
+            onPressed: () => context.push('/login'),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final success = await ManualEnquirySheet.show(context, venue: venue);
+    if (success == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Availability enquiry sent for ${venue.name}!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,25 +200,51 @@ class VenueDetailScreen extends StatelessWidget {
                 top: BorderSide(color: AppColors.glassBorder),
               ),
             ),
-            child: ElevatedButton(
-              onPressed: () => context.push('/ai-planner'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => context.push('/ai-planner'),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: AppColors.primary),
+                      foregroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Add to AI Plan',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Add Venue to Plan',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _handleEnquiry(context, venue),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      'Enquire Availability',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ),
         );
@@ -452,3 +509,4 @@ class VenueDetailScreen extends StatelessWidget {
     );
   }
 }
+

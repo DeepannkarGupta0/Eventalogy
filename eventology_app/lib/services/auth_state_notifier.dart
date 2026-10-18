@@ -1,3 +1,4 @@
+import 'firestore/vendor_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -48,7 +49,16 @@ class AuthStateNotifier extends ChangeNotifier {
           if (claimRole != null && ['admin', 'vendor', 'user'].contains(claimRole)) {
             _role = claimRole;
           } else {
-            _role = 'user'; // Fallback for new signups before claims exist
+            try {
+              final vendor = await VendorRepository.getVendorByUserId(user.uid);
+              if (vendor != null) {
+                _role = 'vendor';
+              } else {
+                _role = 'user';
+              }
+            } catch (_) {
+              _role = 'user';
+            }
           }
         } catch (e) {
           _role = 'user'; // Safe fallback
@@ -75,7 +85,16 @@ class AuthStateNotifier extends ChangeNotifier {
       if (claimRole != null && ['admin', 'vendor', 'user'].contains(claimRole)) {
         _role = claimRole;
       } else {
-        _role = 'user';
+        try {
+          final vendor = await VendorRepository.getVendorByUserId(_user!.uid);
+          if (vendor != null) {
+            _role = 'vendor';
+          } else {
+            _role = 'user';
+          }
+        } catch (_) {
+          _role = 'user';
+        }
       }
     } catch (e) {
       // In case of network errors or missing claims

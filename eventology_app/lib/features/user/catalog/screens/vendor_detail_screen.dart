@@ -1,13 +1,44 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../services/firestore/catalog_repository.dart';
 import '../../../../models/vendor_model.dart';
 import '../../../../core/theme/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../services/auth_state_notifier.dart';
+import '../widgets/manual_enquiry_sheet.dart';
 
 class VendorDetailScreen extends StatelessWidget {
   final String vendorId;
   const VendorDetailScreen({super.key, required this.vendorId});
+
+  void _handleEnquiry(BuildContext context, VendorModel vendor) async {
+    final user = authStateNotifier.user ?? FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please sign in to send an enquiry.'),
+          backgroundColor: AppColors.surfaceHighlight,
+          action: SnackBarAction(
+            label: 'Sign In',
+            textColor: AppColors.primary,
+            onPressed: () => context.push('/login'),
+          ),
+        ),
+      );
+      return;
+    }
+
+    final success = await ManualEnquirySheet.show(context, vendor: vendor);
+    if (success == true && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Enquiry sent to ${vendor.businessName}!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -340,7 +371,7 @@ class VendorDetailScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () => _handleEnquiry(context, vendor),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: Colors.black,
@@ -417,3 +448,4 @@ class VendorDetailScreen extends StatelessWidget {
     );
   }
 }
+

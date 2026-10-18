@@ -89,4 +89,11 @@ class VendorRepository {
     return _col.where('status', isEqualTo: status).snapshots().map((snapshot) =>
         snapshot.docs.map((doc) => VendorModel.fromFirestore(doc)).toList());
   }
+
+  static Stream<VendorModel?> streamVendorByUserId(String userId) {
+    return _col.where('userId', isEqualTo: userId).limit(1).snapshots().map((snapshot) {
+      if (snapshot.docs.isEmpty) return null;
+      return VendorModel.fromFirestore(snapshot.docs.first);
+    });
+  }
 }

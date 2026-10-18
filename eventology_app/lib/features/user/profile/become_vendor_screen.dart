@@ -53,6 +53,15 @@ class _BecomeVendorScreenState extends State<BecomeVendorScreen> {
 
   Future<void> _fetchMasterData() async {
     try {
+      final user = authStateNotifier.user;
+      if (user != null) {
+        final existingVendor = await VendorRepository.getVendorByUserId(user.uid);
+        if (existingVendor != null && mounted) {
+          context.go('/vendor');
+          return;
+        }
+      }
+
       final db = FirestoreConfig.instance;
 
       final catSnap = await db.collection(Collections.categories).get();
@@ -124,15 +133,16 @@ class _BecomeVendorScreenState extends State<BecomeVendorScreen> {
       );
 
       await VendorRepository.createVendor(vendor);
+      await authStateNotifier.refreshRoleClaims();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Application Submitted!'),
+            content: Text('Application Submitted Successfully! Welcome to Partner Portal.'),
             backgroundColor: Colors.green,
           ),
         );
-        context.pop();
+        context.go('/vendor');
       }
     } catch (e) {
       if (mounted) {

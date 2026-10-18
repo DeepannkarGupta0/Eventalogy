@@ -95,7 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Spacer(),
+                          const SizedBox(height: 24),
                           // Logo & Title
                           const Icon(
                             Icons.auto_awesome,
