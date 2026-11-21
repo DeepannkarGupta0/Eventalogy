@@ -1,0 +1,21 @@
+{
+  "name": "@eventology/stage-cue-engine",
+  "version": "1.0.0",
+  "description": "Deterministic Live Event Show Caller State Machine and Dynamic Curfew Compression Engine",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "stage-management",
+    "show-caller",
+    "smpte",
+    "timecode",
+    "curfew-compression",
+    "live-production",
+    "event-ops"
+  ],
+  "author": "Eventology Engineering & Live Ops Team",
+  "license": "MIT"
+}

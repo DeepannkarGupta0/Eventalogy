@@ -179,7 +179,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.auto_awesome,
+                    Icons.diamond_outlined,
                     size: 48,
                     color: AppColors.primary,
                   ),
@@ -187,7 +187,7 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Join Eventology',
+                'Join Eventalogy',
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

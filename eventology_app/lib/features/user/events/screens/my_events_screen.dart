@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../services/firestore/events_repository.dart';
 import '../../../../models/events_model.dart';
 import '../../../../services/auth_state_notifier.dart';
+import '../widgets/create_event_sheet.dart';
 
 class MyEventsScreen extends StatelessWidget {
   const MyEventsScreen({super.key});
@@ -38,6 +38,13 @@ class MyEventsScreen extends StatelessWidget {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Create New Event',
+            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+            onPressed: () => CreateEventSheet.show(context),
+          ),
+        ],
       ),
       body: userId == null
           ? const Center(child: Text('Not authenticated', style: TextStyle(color: Colors.white)))
@@ -116,6 +123,28 @@ class MyEventsScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
+                            if (event.conversationId != null) ...[
+                              const SizedBox(height: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.dashboard_customize_outlined, color: AppColors.primary, size: 12),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'Studio Workspace Active',
+                                      style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -124,6 +153,13 @@ class MyEventsScreen extends StatelessWidget {
                 );
               },
             ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => CreateEventSheet.show(context),
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.black,
+        icon: const Icon(Icons.add),
+        label: const Text('Create New Event', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
     );
   }
 
@@ -143,29 +179,30 @@ class MyEventsScreen extends StatelessWidget {
               color: AppColors.surfaceLighter,
               border: Border.all(color: AppColors.glassBorder),
             ),
-            child: const Icon(Icons.event_busy, size: 48, color: AppColors.textSecondary),
+            child: const Icon(Icons.event_note_rounded, size: 48, color: AppColors.primary),
           ),
           const SizedBox(height: 24),
           const Text(
-            'No events yet',
+            'No Events Yet',
             style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Text(
-            'Let the AI Architect help you plan your first event.',
+            'Set up your event specifications, budget targets, and equipment requirements.',
             style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: () => context.go('/ai-planner'),
+          ElevatedButton.icon(
+            onPressed: () => CreateEventSheet.show(context),
+            icon: const Icon(Icons.rocket_launch_rounded, size: 18),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: const Text('Start Planning', style: TextStyle(fontWeight: FontWeight.bold)),
+            label: const Text('Create Event Studio', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

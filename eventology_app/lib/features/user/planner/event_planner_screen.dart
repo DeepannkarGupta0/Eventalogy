@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../services/firestore/catalog_repository.dart';
 import '../../../services/firestore/package_repository.dart';
 import '../../../models/event_type_model.dart';
@@ -119,22 +120,42 @@ class EventPlannerScreen extends StatelessWidget {
                           ),
                           GestureDetector(
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('${package.name} enquiry started', style: const TextStyle(color: Colors.black)),
-                                  backgroundColor: AppColors.primary,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
+                              context.push('/ai-chat', extra: {
+                                'initialMessage':
+                                    'I am interested in customizing and booking the "${package.name}" package for ${eventType.name}. Please show me what is included, estimated breakdown, and available venues.',
+                                'autoOpenWorkspace': true,
+                              });
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                               decoration: BoxDecoration(
-                                color: AppColors.surfaceLighter,
+                                gradient: const LinearGradient(
+                                  colors: [AppColors.primary, AppColors.primaryLight],
+                                ),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AppColors.glassBorder),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                              child: const Icon(Icons.add, color: Colors.white, size: 20),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.tune_rounded, color: Colors.black, size: 16),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Customize',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ],

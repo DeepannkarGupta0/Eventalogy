@@ -53,6 +53,15 @@ class BookingsRepository {
         .map((s) => s.docs.map((d) => BookingModel.fromFirestore(d)).toList());
   }
 
+  static Stream<List<BookingModel>> streamCustomerBookings(String customerId) {
+    if (customerId.isEmpty) return Stream.value([]);
+    return _col
+        .where('customerId', isEqualTo: customerId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((s) => s.docs.map((d) => BookingModel.fromFirestore(d)).toList());
+  }
+
   static Future<void> confirmBooking(String id) async {
     return _db.runTransaction((transaction) async {
       final docRef = _col.doc(id);

@@ -3,7 +3,8 @@ import { logAgentAction } from "../services/agent_log_service";
 import { createAgentTask, updateAgentTaskStatus } from "../services/agent_task_service";
 import { db } from "../config/firebase";
 import { FieldValue } from "firebase-admin/firestore";
-import type { StateType, ApprovalRequest } from "../graph/state";
+import type { StateType, ApprovalRequest, ArtifactValidationStatus } from "../graph/state";
+import { EventCuratorOversightService } from "../services/event_curator_oversight_service";
 
 /**
  * Approval Agent — Human-in-the-Loop interrupt node.
@@ -13,17 +14,41 @@ import type { StateType, ApprovalRequest } from "../graph/state";
  * checkpointer, and waits for the user to resume via POST /api/agent/approve.
  *
  * Flow:
- *   1. Build approval request from current recommendations + budget
- *   2. Persist to Firestore agent_tasks so admin can see it
- *   3. Call interrupt() — graph SUSPENDS here. Control returns to API caller.
- *   4. Code after interrupt() only runs when the graph is resumed via Command({ resume: ... })
- *   5. Apply the user's decision and return updated state
+ *   1. Screen operational consistency and safety holds via EventCuratorOversightService
+ *   2. Build approval request from current recommendations + budget
+ *   3. Persist to Firestore agent_tasks so admin can see it
+ *   4. Call interrupt() — graph SUSPENDS here. Control returns to API caller.
+ *   5. Code after interrupt() only runs when the graph is resumed via Command({ resume: ... })
+ *   6. Apply the user's decision and return updated state
  */
 export async function approvalAgentNode(state: StateType): Promise<Partial<StateType>> {
   const startTime = Date.now();
   
   try {
     await logAgentAction(state.workflowId, "approval_agent", "preparing_approval", "running");
+
+    // ── Curator AI Oversight Screening Gate ─────────────────────────────────────
+    const oversight = EventCuratorOversightService.evaluateConsistency(state);
+    if (!oversight.canPresentApproval) {
+      await logAgentAction(state.workflowId, "approval_agent", "approval_blocked_by_curator", "warning", {
+        reason: oversight.blockingReason,
+        conflicts: oversight.conflicts,
+      });
+
+      return {
+        approvalStatus: "none",
+        pendingApprovals: [],
+        metadata: {
+          curatorOversight: oversight,
+        },
+        currentAgent: oversight.conflicts.some((c) => c.category === "technical_safety")
+          ? "technical_review_agent"
+          : "orchestrator_agent",
+        currentStage: oversight.conflicts.some((c) => c.category === "technical_safety")
+          ? "technical_hold"
+          : state.currentStage,
+      };
+    }
 
     // ── Build the approval request ──────────────────────────────────────────────
     const selectedVenue = (state.candidateVenues ?? []).find(v => v.venueId === state.selectedVenueId);
@@ -111,12 +136,48 @@ export async function approvalAgentNode(state: StateType): Promise<Partial<State
       decidedAt: new Date().toISOString(),
     };
 
+    // Bounded approval scope:
+    // Only artifacts belonging to this workflowId and within scope of the event plan & budget approval
+    // (i.e. 'event_brief' and 'equipment_bom') are transitioned by this human booking gate.
+    // Technical artifacts (e.g., spatial layouts, CAD exports, engineering math) are NOT approved
+    // by a generic booking approval without specific engineering verification.
+    const approvedTypes = new Set(["event_brief", "equipment_bom"]);
+
+    const updatedArtifacts = (state.artifacts ?? []).map(art => {
+      // Guard 1: Must belong to this workflow
+      const belongsToWorkflow =
+        (!art.metadata?.workflowId || art.metadata.workflowId === state.workflowId) &&
+        (art.artifactId.includes(state.workflowId) || art.metadata?.workflowId === state.workflowId);
+
+      // Guard 2: Must be within approval scope of this decision
+      const isInApprovalScope = approvedTypes.has(art.type);
+
+      if (belongsToWorkflow && isInApprovalScope) {
+        return {
+          ...art,
+          status: (approved ? "approved" : "rejected") as ArtifactValidationStatus,
+          requiresReview: approved ? false : art.requiresReview,
+          metadata: {
+            ...(art.metadata ?? {}),
+            approvalId: approvalRequest.approvalId,
+            approvedAt: new Date().toISOString(),
+            approvedBy: state.userId,
+          },
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      // Preserve un-scoped or external artifacts unchanged
+      return art;
+    });
+
     return {
       approvalStatus: approved ? "approved" : "rejected",
       pendingApprovals: [updatedApproval],
       currentAgent: "orchestrator_agent",
       currentStage: approved ? "booking" : "completed",
       workflowStatus: approved ? "active" : "completed",
+      artifacts: updatedArtifacts,
       agentHistory: [{
         agent: "approval_agent",
         stage: "approval_pending",

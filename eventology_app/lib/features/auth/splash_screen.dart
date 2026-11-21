@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -91,10 +91,10 @@ class _SplashScreenState extends State<SplashScreen>
               child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.auto_awesome, color: AppColors.primary, size: 64),
+                  Icon(Icons.diamond_outlined, color: AppColors.primary, size: 64),
                   SizedBox(height: 24),
                   Text(
-                    'EVENTOLOGY',
+                    'EVENTALOGY',
                     style: TextStyle(
                       fontSize: 42,
                       fontWeight: FontWeight.w900,

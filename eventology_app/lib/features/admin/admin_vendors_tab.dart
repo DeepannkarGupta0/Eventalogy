@@ -120,8 +120,9 @@ class _AdminVendorsTabState extends State<AdminVendorsTab> {
           children: [
             Text('Owner: ${vendor.ownerName} | UserId: ${vendor.userId}'),
             Text('Categories: ${vendor.categoryIds.length} | Services: ${vendor.serviceIds?.length ?? 0}'),
-            Text('GST No: ${vendor.gstNumber ?? 'Not Provided'}'),
-            Text("Status: ${vendor.status.toUpperCase()} | ${vendor.verified ? 'VERIFIED' : 'UNVERIFIED'}"),
+            Text('GSTIN: ${vendor.gstNumber ?? 'Not Provided'} | PAN: ${vendor.panNumber ?? 'Not Provided'}'),
+            Text('Bank: ${vendor.bankName ?? 'Not Configured'} (${vendor.ifscCode ?? 'No IFSC'}) | Payout: ${vendor.payoutStatus.toUpperCase()}'),
+            Text("Status: ${vendor.status.toUpperCase()} | ${vendor.verified ? 'VERIFIED' : 'UNVERIFIED'} | Day Rate: ₹${(vendor.basePrice ?? 0).toStringAsFixed(0)}"),
           ],
         ),
         trailing: Row(

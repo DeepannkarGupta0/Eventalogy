@@ -98,13 +98,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 24),
                           // Logo & Title
                           const Icon(
-                            Icons.auto_awesome,
+                            Icons.diamond_outlined,
                             color: AppColors.primary,
                             size: 48,
                           ),
                           const SizedBox(height: 24),
                           const Text(
-                            'EVENTOLOGY',
+                            'EVENTALOGY',
                             style: TextStyle(
                               fontSize: 36,
                               fontWeight: FontWeight.w900,

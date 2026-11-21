@@ -76,6 +76,7 @@ export async function invokeAgentForWhatsApp(
       workflowStatus: "active",
       lastError: null,
       metadata: { channel: "whatsapp", waId },
+      artifacts: [],
     };
 
     // Persist the conversationId to the identity record so next message resumes correctly

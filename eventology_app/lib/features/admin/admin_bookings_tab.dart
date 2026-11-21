@@ -11,14 +11,20 @@ import '../../core/database/collections.dart';
 
 import 'package:intl/intl.dart';
 
+import '../../services/cancellation_api_service.dart';
+import 'admin_cancellation_queue_tab.dart';
+
 class AdminBookingsTab extends StatefulWidget {
-  const AdminBookingsTab({super.key});
+  final CancellationApiService? cancellationApiService;
+
+  const AdminBookingsTab({super.key, this.cancellationApiService});
 
   @override
   State<AdminBookingsTab> createState() => _AdminBookingsTabState();
 }
 
 class _AdminBookingsTabState extends State<AdminBookingsTab> {
+  int _selectedTabIndex = 0; // 0 = All Bookings, 1 = Cancellation & Refund Queue
   String _searchQuery = '';
   String _statusFilter = 'All';
 
@@ -26,13 +32,15 @@ class _AdminBookingsTabState extends State<AdminBookingsTab> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _buildFilters(),
-        Expanded(
-          child: StreamBuilder<List<BookingModel>>(
-            stream: BookingsRepository.stream(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError)
-                return Center(child: Text('Error: ${snapshot.error}'));
+        _buildViewModeToggle(),
+        if (_selectedTabIndex == 0) ...[
+          _buildFilters(),
+          Expanded(
+            child: StreamBuilder<List<BookingModel>>(
+              stream: BookingsRepository.stream(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError)
+                  return Center(child: Text('Error: ${snapshot.error}'));
               if (!snapshot.hasData)
                 return const Center(child: CircularProgressIndicator());
 
@@ -75,9 +83,87 @@ class _AdminBookingsTabState extends State<AdminBookingsTab> {
             },
           ),
         ),
+      ] else ...[
+        Expanded(
+          child: AdminCancellationQueueView(
+            apiService: widget.cancellationApiService,
+          ),
+        ),
       ],
-    );
-  }
+    ],
+  );
+}
+
+Widget _buildViewModeToggle() {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+    decoration: const BoxDecoration(
+      color: AppColors.surface,
+      border: Border(bottom: BorderSide(color: AppColors.glassBorder)),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const Key('tab_all_bookings'),
+            icon: Icon(
+              Icons.book_online_outlined,
+              size: 16,
+              color: _selectedTabIndex == 0 ? AppColors.primary : AppColors.textSecondary,
+            ),
+            label: Text(
+              'All Bookings',
+              style: TextStyle(
+                fontWeight: _selectedTabIndex == 0 ? FontWeight.bold : FontWeight.normal,
+                color: _selectedTabIndex == 0 ? AppColors.primary : AppColors.textSecondary,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: _selectedTabIndex == 0
+                  ? AppColors.primary.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              side: BorderSide(
+                color: _selectedTabIndex == 0 ? AppColors.primary : AppColors.glassBorder,
+                width: _selectedTabIndex == 0 ? 1.5 : 1.0,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+            onPressed: () => setState(() => _selectedTabIndex = 0),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OutlinedButton.icon(
+            key: const Key('tab_cancellation_queue'),
+            icon: Icon(
+              Icons.cancel_schedule_send_rounded,
+              size: 16,
+              color: _selectedTabIndex == 1 ? AppColors.accentBlue : AppColors.textSecondary,
+            ),
+            label: Text(
+              'Cancellations & Refunds',
+              style: TextStyle(
+                fontWeight: _selectedTabIndex == 1 ? FontWeight.bold : FontWeight.normal,
+                color: _selectedTabIndex == 1 ? AppColors.accentBlue : AppColors.textSecondary,
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              backgroundColor: _selectedTabIndex == 1
+                  ? AppColors.accentBlue.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              side: BorderSide(
+                color: _selectedTabIndex == 1 ? AppColors.accentBlue : AppColors.glassBorder,
+                width: _selectedTabIndex == 1 ? 1.5 : 1.0,
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+            onPressed: () => setState(() => _selectedTabIndex = 1),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildFilters() {
     return Padding(

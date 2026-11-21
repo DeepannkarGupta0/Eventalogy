@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../../../services/firebase_auth_service.dart';
 import '../../../services/auth_state_notifier.dart';
 import '../../../core/theme/app_colors.dart';
+import '../events/widgets/create_event_sheet.dart';
 
 class UserProfileView extends StatelessWidget {
   const UserProfileView({super.key});
@@ -102,9 +103,28 @@ class UserProfileView extends StatelessWidget {
                             onTap: () => context.push('/my-events'),
                           ),
                           _ProfileItem(
-                            icon: Icons.smart_toy_rounded,
-                            label: 'AI Event Planner',
-                            onTap: () => context.push('/ai-planner'),
+                            icon: Icons.bookmark_added_rounded,
+                            label: 'My Bookings',
+                            subtitle: 'View bookings, receipts and payment checkout',
+                            onTap: () => context.push('/my-bookings'),
+                          ),
+                          _ProfileItem(
+                            icon: Icons.assignment_outlined,
+                            label: 'My Enquiries',
+                            subtitle: 'Track vendor & venue availability requests',
+                            onTap: () => context.push('/my-enquiries'),
+                          ),
+                          _ProfileItem(
+                            icon: Icons.add_circle_outline_rounded,
+                            label: 'Create Event Studio',
+                            subtitle: 'Setup specifications, equipment BOM, floorplan & RFQs',
+                            onTap: () => CreateEventSheet.show(context),
+                          ),
+                          _ProfileItem(
+                            icon: Icons.live_tv_rounded,
+                            label: 'Live Operations & ROS',
+                            subtitle: 'Day-of-event show caller cue sheet & curfew countdown',
+                            onTap: () => context.push('/operations/live-ros'),
                           ),
                           _ProfileItem(
                             icon: Icons.explore_rounded,
@@ -133,7 +153,7 @@ class UserProfileView extends StatelessWidget {
                           _ProfileItem(
                             icon: Icons.store_mall_directory_rounded,
                             label: 'Become a Vendor',
-                            subtitle: 'List your business on Eventology',
+                            subtitle: 'List your business on Eventalogy',
                             onTap: () => context.push('/become-vendor'),
                           ),
                         ],

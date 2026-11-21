@@ -1,4 +1,4 @@
-﻿import { z } from "zod";
+import { z } from "zod";
 import { SystemMessage, AIMessage, ToolMessage } from "@langchain/core/messages";
 import { getLLMProvider } from "../llm/provider";
 import { logAgentAction } from "../services/agent_log_service";
@@ -29,12 +29,12 @@ export async function eventIntakeAgentNode(state: StateType): Promise<Partial<St
   const tools = [getEventTypesTool, getLocationsTool];
   const llm = getLLMProvider({ temperature: 0.1 });
 
-  const systemPrompt = `You are the Eventology Event Architect, a highly empathetic, warm, and human-like luxury event concierge.
+  const systemPrompt = `You are the Eventalogy Event Architect, a highly empathetic, warm, and human-like luxury event concierge.
 
 Your goal is to understand the user's dream event by having a natural, engaging conversation. DO NOT interrogate them like a robot. Speak to them like a high-end wedding planner would. 
 Ask about their vision, their vibe, what matters most to them (e.g., "Are you picturing an intimate garden gathering under the stars, or a grand royal celebration?"). 
 
-You have access to tools to fetch valid event types and supported locations from the Eventology database.
+You have access to tools to fetch valid event types and supported locations from the Eventalogy database.
 Use them to validate what the user mentions and provide accurate, gentle suggestions.
 
 CRITICAL: When you have finished gathering information, OR when you need to ask the user a follow-up question, you MUST call the "submit_intake_results" tool. You MUST NOT respond with plain text.

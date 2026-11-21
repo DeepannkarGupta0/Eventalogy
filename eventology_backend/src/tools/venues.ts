@@ -39,7 +39,7 @@ export const searchVenuesTool = tool(
   },
   {
     name: "search_venues",
-    description: "Search for venues in Eventology by city, capacity range, and venue type. Returns a list of matching venues with capacity and pricing.",
+    description: "Search for venues in Eventalogy by city, capacity range, and venue type. Returns a list of matching venues with capacity and pricing.",
     schema: z.object({
       city: z.string().optional().describe("City name to filter by"),
       minCapacity: z.number().optional().describe("Minimum guest capacity required"),

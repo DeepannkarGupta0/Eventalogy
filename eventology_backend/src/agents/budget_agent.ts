@@ -6,7 +6,7 @@ import { executeTool } from "../utils/tool_executor";
 import { getVenuePricingTool } from "../tools/venues";
 import { getVendorPricingTool } from "../tools/vendors";
 import { getPackagePricingTool } from "../tools/services";
-import type { StateType, BudgetBreakdown, Recommendation } from "../graph/state";
+import type { StateType, BudgetBreakdown, Recommendation, ProductionArtifact } from "../graph/state";
 
 const BudgetOutputSchema = z.object({
   selectedVenueId: z.string().nullable(),
@@ -49,7 +49,7 @@ export async function budgetAgentNode(state: StateType): Promise<Partial<StateTy
   const venueList = availableVenues.map(v => `${v.venueId}: ${v.name} (score:${v.score})`).join(", ");
   const vendorList = availableVendors.map(v => `${v.vendorId}: ${v.name} (${v.serviceCategory}, score:${v.score})`).join(", ");
 
-  const systemPrompt = `You are the Eventology Budget Agent.
+  const systemPrompt = `You are the Eventalogy Budget Agent.
 
 Your job is to retrieve pricing and recommend the optimal combination of venue + vendors within budget.
 
@@ -141,6 +141,44 @@ CRITICAL: When you have finished gathering information and reasoning, you MUST c
 
     await logAgentAction(state.workflowId, "budget_agent", "complete", "success", { total: output.budgetBreakdown.totalEstimatedCost, withinBudget: output.budgetSufficient, durationMs: Date.now() - startTime });
 
+    const eventTypeDisplay = state.eventRequirements?.eventType
+      ? state.eventRequirements.eventType.charAt(0).toUpperCase() + state.eventRequirements.eventType.slice(1)
+      : "Event";
+
+    const bomArtifact: ProductionArtifact = {
+      artifactId: `bom-${state.workflowId}-v1`,
+      type: "equipment_bom",
+      title: `${eventTypeDisplay} Equipment & Budget BOM`,
+      summary: output.budgetBreakdown?.notes || `Itemized budget breakdown totaling INR ${(output.budgetBreakdown.totalEstimatedCost ?? 0).toLocaleString("en-IN")}.`,
+      version: 1,
+      format: "json",
+      mimeType: "application/json",
+      content: JSON.stringify(output.budgetBreakdown.lineItems ?? [], null, 2),
+      status: output.budgetSufficient ? "draft" : "requires_review",
+      requiresReview: true, // Retains review requirement until technical verification and human approval
+      assumptions: [
+        output.budgetBreakdown?.notes || "Preliminary price quotes based on matched vendor estimates and venue baseline.",
+      ],
+      sources: [
+        {
+          title: "Eventalogy Vendor Catalog & Venue Rates",
+          sourceType: "catalog",
+          notes: "Pricing aggregated from candidate vendor and venue catalog rates.",
+        },
+      ],
+      metadata: {
+        workflowId: state.workflowId,
+        eventId: state.eventId ?? undefined,
+        totalEstimatedCost: output.budgetBreakdown.totalEstimatedCost,
+        withinBudget: output.budgetSufficient,
+        budgetChecked: true,
+        technicalValidationPassed: false, // Budget compliance does not imply engineering safety or electrical/rigging validation
+        itemCount: output.budgetBreakdown.lineItems?.length ?? 0,
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     return {
       selectedVenueId: output.selectedVenueId,
       selectedVendorIds: output.selectedVendorIds,
@@ -150,6 +188,7 @@ CRITICAL: When you have finished gathering information and reasoning, you MUST c
       pricingResults: Object.fromEntries(output.recommendations.map(r => [r.entityId, r.estimatedCost])),
       currentAgent: "orchestrator_agent",
       currentStage: "budget",
+      artifacts: [bomArtifact],
       agentHistory: [{ agent: "budget_agent", stage: "budget", status: "success", startedAt: new Date(startTime).toISOString(), durationMs: Date.now() - startTime, notes: `Total: INR ${output.budgetBreakdown.totalEstimatedCost} | withinBudget: ${output.budgetSufficient}` }],
       completedTasks: ["budget_agent"],
     };

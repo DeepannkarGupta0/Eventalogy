@@ -70,7 +70,7 @@ class ServiceRepository {
     });
   }
 
-  /// One-time business-data seed for initial Eventology service catalog.
+  /// One-time business-data seed for initial Eventalogy service catalog.
   /// Idempotent: checks if services exist by name before creating.
   static Future<Map<String, dynamic>> seedInitialServices() async {
     final Map<String, dynamic> result = {

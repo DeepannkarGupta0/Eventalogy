@@ -50,7 +50,7 @@ export async function bookingAgentNode(state: StateType): Promise<Partial<StateT
   const guestCount = state.eventRequirements.guestCount ?? 50;
   const budget = state.budgetBreakdown?.totalEstimatedCost ?? 0;
 
-  const systemPrompt = `You are the Eventology Booking Agent.
+  const systemPrompt = `You are the Eventalogy Booking Agent.
 
 User approval has been confirmed. Your job is to create event and booking records in Firestore.
 

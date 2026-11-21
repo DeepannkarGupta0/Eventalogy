@@ -4,6 +4,7 @@ import '../vendor_session.dart';
 import '../../../services/firestore/enquiries_repository.dart';
 import '../../../services/firestore/bookings_repository.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 class VendorDashboardView extends StatelessWidget {
   const VendorDashboardView({super.key});
 
@@ -14,7 +15,7 @@ class VendorDashboardView extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.background.withOpacity(0.95),
+        backgroundColor: AppColors.background.withValues(alpha: 0.95),
         elevation: 0,
         centerTitle: true,
         title: const Text(
@@ -120,6 +121,104 @@ class VendorDashboardView extends StatelessWidget {
               ),
             ),
             
+            // Live Event Radar & Curfew Sentinel Card
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF1E1B10), Color(0xFF141824)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.timer_rounded, color: AppColors.primary, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Next Gig Call Time',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                '• 10:00 AM',
+                                style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Mayfair Resort, Raipur • 10:00 PM Municipal Noise Curfew Active',
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 10),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Escrow Payout Status Banner
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: vendor.payoutStatus == 'verified'
+                      ? Colors.teal.withValues(alpha: 0.12)
+                      : Colors.amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: vendor.payoutStatus == 'verified'
+                        ? Colors.teal.withValues(alpha: 0.4)
+                        : Colors.amber.withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      vendor.payoutStatus == 'verified' ? Icons.account_balance : Icons.account_balance_outlined,
+                      color: vendor.payoutStatus == 'verified' ? Colors.tealAccent : Colors.amber,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        vendor.payoutStatus == 'verified'
+                            ? 'Bank Account Connected: ${vendor.bankName ?? "Bank"} (•••${vendor.accountNumber != null && vendor.accountNumber!.length >= 4 ? vendor.accountNumber!.substring(vendor.accountNumber!.length - 4) : "OK"}) • Escrow Payouts Unlocked'
+                            : 'Payout Account: ${vendor.payoutStatus.toUpperCase().replaceAll("_", " ")} • Milestone payouts held until KYC signoff',
+                        style: TextStyle(
+                          color: vendor.payoutStatus == 'verified' ? Colors.tealAccent : Colors.amber.shade200,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+
             // Metrics Grid
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -163,7 +262,172 @@ class VendorDashboardView extends StatelessWidget {
               ),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Production RFQs & Bidding Banner
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.inventory_2_rounded, color: AppColors.primary, size: 24),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Production RFQ Inbox',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Review equipment RFQs, counter-bid & submit quotes',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      key: const Key('vendor_dashboard_view_rfqs_button'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => context.push(
+                        '/vendor/rfqs?vendorId=${vendor.id}&vendorName=${Uri.encodeComponent(vendor.businessName)}',
+                      ),
+                      child: const Text('Open RFQs', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Settlements Statement Ledger Banner
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary, size: 24),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Settlement Statement Ledger',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Inspect settlement proposals, deductions & status',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      key: const Key('vendor_dashboard_view_settlements_button'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => context.go('/vendor/settlements'),
+                      child: const Text('View Ledger', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // Availability & Calendar Banner
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 24),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Availability & Capacity Calendar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Manage operating days, blackout dates & capacity limits',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      key: const Key('vendor_dashboard_availability_button'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.surfaceHighlight,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      onPressed: () => context.push('/vendor/availability'),
+                      child: const Text('Manage', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            const SizedBox(height: 20),
             
             // Leads Section
             Padding(
@@ -297,7 +561,7 @@ class VendorDashboardView extends StatelessWidget {
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                       colors: [
-                        AppColors.surface.withOpacity(1.0),
+                        AppColors.surface.withValues(alpha: 1.0),
                         Colors.transparent,
                       ],
                     ),

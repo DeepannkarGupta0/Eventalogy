@@ -6,12 +6,12 @@ import { createAgentTask, updateAgentTaskStatus } from "../services/agent_task_s
 import { saveAIPlan } from "../services/ai_plan_service";
 import { executeTool } from "../utils/tool_executor";
 import { getAllCategoriesTool, getEventTypesTool, getPackagesTool } from "../tools/services";
-import type { StateType, EventPlan } from "../graph/state";
+import type { StateType, EventPlan, ProductionArtifact } from "../graph/state";
 
 const PlanSchema = z.object({
   title: z.string(),
   summary: z.string(),
-  requiredServices: z.array(z.string()).describe("Service category names that exist in the Eventology system"),
+  requiredServices: z.array(z.string()).describe("Service category names that exist in the Eventalogy system"),
   venueCharacteristics: z.array(z.string()),
   estimatedInitialBudget: z.number(),
   dependencies: z.array(z.string()),
@@ -25,16 +25,16 @@ export async function eventPlanningAgentNode(state: StateType): Promise<Partial<
   const tools = [getAllCategoriesTool, getEventTypesTool, getPackagesTool];
   const llm = getLLMProvider({ temperature: 0.2 }).bindTools(tools);
 
-  const systemPrompt = `You are the Eventology Event Planning Agent.
+  const systemPrompt = `You are the Eventalogy Event Planning Agent.
 
 You receive structured event requirements and must create a comprehensive event plan.
 
 Your responsibilities:
-1. Use tools to fetch available service categories from the Eventology system
+1. Use tools to fetch available service categories from the Eventalogy system
 2. Check what event type packages are available
 3. Reason carefully about which services are actually needed for this specific event
 4. Do NOT produce a generic checklist - adapt to the specific event type, scale, and budget
-5. Your requiredServices must only use categories that actually exist in the Eventology system
+5. Your requiredServices must only use categories that actually exist in the Eventalogy system
 
 CRITICAL: When you have finished gathering information and reasoning, you MUST call the "submit_event_plan_results" tool to output the final plan. You MUST NOT respond with plain text.
 
@@ -120,12 +120,66 @@ ${JSON.stringify(state.eventRequirements, null, 2)}`;
     await updateAgentTaskStatus(taskId, "completed", plan);
     await logAgentAction(state.workflowId, "event_planning_agent", "complete", "success", { planId, title: plan.title, servicesCount: plan.requiredServices.length, durationMs: Date.now() - startTime });
 
+    const briefArtifact: ProductionArtifact = {
+      artifactId: `brief-${state.workflowId}-v1`,
+      type: "event_brief",
+      title: plan.title || "Event Production Brief",
+      summary: plan.summary || "Comprehensive event production and requirement brief.",
+      version: 1,
+      format: "markdown",
+      mimeType: "text/markdown",
+      content: [
+        `# ${plan.title || "Event Production Brief"}`,
+        "",
+        "## Executive Summary",
+        plan.summary || "No executive summary provided.",
+        "",
+        "## Event Specifications",
+        `- **Event Type:** ${state.eventRequirements?.eventType ?? "Unspecified"}`,
+        `- **Estimated Guests:** ${state.eventRequirements?.guestCount ?? "To be confirmed"}`,
+        `- **Preferred City / Region:** ${state.eventRequirements?.location ?? "Pan-India"}`,
+        `- **Estimated Initial Budget:** INR ${(plan.estimatedInitialBudget ?? 0).toLocaleString("en-IN")}`,
+        "",
+        "## Required Services & Modules",
+        ...(plan.requiredServices && plan.requiredServices.length > 0
+          ? plan.requiredServices.map((s: string) => `- ${s}`)
+          : ["- Standard event planning & management"]),
+        "",
+        "## Venue Specifications",
+        ...(plan.venueCharacteristics && plan.venueCharacteristics.length > 0
+          ? plan.venueCharacteristics.map((v: string) => `- ${v}`)
+          : ["- Standard multi-purpose banquet / lawn"]),
+      ].join("\n"),
+      status: "draft",
+      requiresReview: true,
+      assumptions: plan.dependencies && plan.dependencies.length > 0
+        ? plan.dependencies
+        : ["Estimates and service scopes are preliminary subject to specialist discovery."],
+      sources: [
+        {
+          title: "Eventology Category & Package Catalog",
+          sourceType: "catalog",
+          notes: "Derived from standard catalog service templates and planner rules.",
+        },
+      ],
+      metadata: {
+        workflowId: state.workflowId,
+        aiPlanId: planId,
+        eventId: state.eventId ?? undefined,
+        estimatedInitialBudget: plan.estimatedInitialBudget,
+        servicesCount: plan.requiredServices?.length ?? 0,
+      },
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
     return {
       eventPlan: plan as EventPlan,
       aiPlanId: planId,
       currentAgent: "orchestrator_agent",
       currentStage: "planning",
       workflowStatus: "active",
+      artifacts: [briefArtifact],
       agentHistory: [{ agent: "event_planning_agent", stage: "planning", status: "success", startedAt: new Date(startTime).toISOString(), durationMs: Date.now() - startTime, notes: `Plan: "${plan.title}" | ${plan.requiredServices.length} services` }],
       completedTasks: ["event_planning_agent"],
     };

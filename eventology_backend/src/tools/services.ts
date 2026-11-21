@@ -32,7 +32,7 @@ export const getServicesByCategoryTool = tool(
   },
   {
     name: "get_services_by_category",
-    description: "Get all services available within a specific category in Eventology. Returns service IDs needed for booking.",
+    description: "Get all services available within a specific category in Eventalogy. Returns service IDs needed for booking.",
     schema: z.object({
       categoryName: z.string().optional().describe("Category name to filter by. If omitted, returns all categories."),
     }),
@@ -59,7 +59,7 @@ export const getPackagesTool = tool(
   },
   {
     name: "get_packages",
-    description: "Get bundled event packages available in Eventology. Useful when the user wants an all-in-one option.",
+    description: "Get bundled event packages available in Eventalogy. Useful when the user wants an all-in-one option.",
     schema: z.object({
       eventType: z.string().optional().describe("Filter packages by event type e.g. Wedding, Birthday"),
     }),
@@ -99,7 +99,7 @@ export const getAllCategoriesTool = tool(
   },
   {
     name: "get_all_categories",
-    description: "Get all active service categories available in Eventology.",
+    description: "Get all active service categories available in Eventalogy.",
     schema: z.object({}),
   }
 );
@@ -117,7 +117,7 @@ export const getEventTypesTool = tool(
   },
   {
     name: "get_event_types",
-    description: "Get all valid event types in Eventology (e.g., Wedding, Birthday, Corporate).",
+    description: "Get all valid event types in Eventalogy (e.g., Wedding, Birthday, Corporate).",
     schema: z.object({}),
   }
 );
@@ -135,7 +135,7 @@ export const getLocationsTool = tool(
   },
   {
     name: "get_locations",
-    description: "Get all active supported cities and locations in Eventology.",
+    description: "Get all active supported cities and locations in Eventalogy.",
     schema: z.object({}),
   }
 );

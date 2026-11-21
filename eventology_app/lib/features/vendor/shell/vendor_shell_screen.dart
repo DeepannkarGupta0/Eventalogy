@@ -36,25 +36,26 @@ class _VendorShellScreenState extends State<VendorShellScreen> {
             filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
             child: Container(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom + 16,
-                top: 16,
-                left: 24,
-                right: 24,
+                bottom: MediaQuery.of(context).padding.bottom + 12,
+                top: 12,
+                left: 12,
+                right: 12,
               ),
               decoration: BoxDecoration(
-                color: AppColors.background.withOpacity(0.95),
+                color: AppColors.background.withValues(alpha: 0.95),
                 border: const Border(
                   top: BorderSide(color: AppColors.glassBorder, width: 1),
                 ),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   _buildNavItem(0, Icons.dashboard_rounded, 'Dashboard'),
-                  _buildNavItem(1, Icons.assignment_rounded, 'Enquiries'),
+                  _buildNavItem(1, Icons.assignment_rounded, 'RFQs & Bids'),
                   _buildNavItem(2, Icons.event_available_rounded, 'Bookings'),
-                  _buildNavItem(3, Icons.person_rounded, 'Profile'),
+                  _buildNavItem(3, Icons.account_balance_wallet_rounded, 'Settlements'),
+                  _buildNavItem(4, Icons.person_rounded, 'Profile'),
                 ],
               ),
             ),
@@ -66,22 +67,24 @@ class _VendorShellScreenState extends State<VendorShellScreen> {
 
   Widget _buildNavItem(int index, IconData icon, String label) {
     final isSelected = widget.navigationShell.currentIndex == index;
-    return GestureDetector(
-      onTap: () => changeTab(index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => changeTab(index),
+        behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              size: 28,
+              size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,

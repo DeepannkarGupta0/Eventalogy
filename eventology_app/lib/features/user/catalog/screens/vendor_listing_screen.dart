@@ -63,7 +63,7 @@ class VendorListingScreen extends StatelessWidget {
             SizedBox(height: 16),
             Text('No vendors found', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             SizedBox(height: 8),
-            Text('Try exploring a different category or ask the AI Architect.', style: TextStyle(color: AppColors.textSecondary)),
+            Text('Try exploring a different category or refining your search filters.', style: TextStyle(color: AppColors.textSecondary)),
           ],
         ),
       );

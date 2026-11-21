@@ -32,7 +32,7 @@ export async function vendorAgentNode(state: StateType): Promise<Partial<StateTy
   const req = state.eventRequirements;
   const requiredServices = state.eventPlan?.requiredServices ?? [];
 
-  const systemPrompt = `You are the Eventology Vendor Agent.
+  const systemPrompt = `You are the Eventalogy Vendor Agent.
 
 Your job is to find suitable vendors for each service required by the event plan.
 

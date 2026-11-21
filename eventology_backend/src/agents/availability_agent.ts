@@ -38,7 +38,7 @@ export async function availabilityAgentNode(state: StateType): Promise<Partial<S
   const venueList = venues.map(v => `${v.venueId}: ${v.name}`).join(", ");
   const vendorList = vendors.map(v => `${v.vendorId}: ${v.name} (${v.serviceCategory})`).join(", ");
 
-  const systemPrompt = `You are the Eventology Availability Agent.
+  const systemPrompt = `You are the Eventalogy Availability Agent.
 
 Your job is to check whether shortlisted venues and vendors are available on the event date.
 

@@ -1,4 +1,4 @@
-﻿import '../../services/auth_state_notifier.dart';
+import '../../services/auth_state_notifier.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
@@ -415,7 +415,7 @@ class _VendorPendingApprovalViewState extends State<VendorPendingApprovalView> {
                       ? 'Your vendor partner application could not be approved with the current details. Please review your business credentials or reach out to partner support.'
                       : isSuspended
                           ? 'Your vendor account is temporarily suspended or inactive. Please contact the administrator team to restore full operational access.'
-                          : 'Welcome, ${vendor.businessName.isNotEmpty ? vendor.businessName : "Partner"}. Your vendor application has been submitted and is currently being reviewed by the Eventology Administration team.';
+                          : 'Welcome, ${vendor.businessName.isNotEmpty ? vendor.businessName : "Partner"}. Your vendor application has been submitted and is currently being reviewed by the Eventalogy Administration team.';
 
                   return Column(
                     children: [

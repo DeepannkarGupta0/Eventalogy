@@ -1,16 +1,22 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
 import '../../../../services/firestore/catalog_repository.dart';
 import '../../../../models/vendor_model.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../services/auth_state_notifier.dart';
 import '../widgets/manual_enquiry_sheet.dart';
+import 'package:go_router/go_router.dart';
 
-class VendorDetailScreen extends StatelessWidget {
+class VendorDetailScreen extends StatefulWidget {
   final String vendorId;
   const VendorDetailScreen({super.key, required this.vendorId});
+
+  @override
+  State<VendorDetailScreen> createState() => _VendorDetailScreenState();
+}
+
+class _VendorDetailScreenState extends State<VendorDetailScreen> {
+  int _selectedTabIndex = 0;
 
   void _handleEnquiry(BuildContext context, VendorModel vendor) async {
     final user = authStateNotifier.user ?? FirebaseAuth.instance.currentUser;
@@ -43,7 +49,7 @@ class VendorDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<VendorModel?>(
-      future: CatalogRepository.getVendor(vendorId),
+      future: CatalogRepository.getVendor(widget.vendorId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -93,115 +99,46 @@ class VendorDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeroImage(context, vendor),
-                _buildFakeTabBar(),
+                _buildInteractiveTabBar(),
                 Padding(
                   padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'About the Artist',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        vendor.description ?? 'An exclusive premium vendor providing luxury services for your events. Experience the highest quality and dedication.',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      if (vendor.portfolioImages != null &&
-                          vendor.portfolioImages!.isNotEmpty) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Past Work',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const Text(
-                              'View All',
-                              style: TextStyle(
-                                color: AppColors.primary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 160,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: vendor.portfolioImages!.length,
-                            itemBuilder: (context, index) {
-                              return Container(
-                                width: 140,
-                                margin: const EdgeInsets.only(right: 16),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  image: DecorationImage(
-                                    image: NetworkImage(
-                                      vendor.portfolioImages![index],
-                                    ),
-                                    fit: BoxFit.cover,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 100), // padding for bottom bar
-                      ],
-                    ],
-                  ),
+                  child: _buildActiveTabContent(vendor),
                 ),
+                const SizedBox(height: 100),
               ],
             ),
           ),
           bottomNavigationBar: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.surface.withOpacity(0.9),
+              color: const Color(0xFF121622),
               border: const Border(
                 top: BorderSide(color: AppColors.glassBorder),
               ),
             ),
-            child: ElevatedButton(
-              onPressed: () {
-                context.push('/ai-planner');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                'Add to AI Architect Plan',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _handleEnquiry(context, vendor),
+                      icon: const Icon(Icons.request_quote_rounded, size: 20),
+                      label: const Text(
+                        'Request Custom Quote',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -210,56 +147,226 @@ class VendorDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFakeTabBar() {
+  Widget _buildInteractiveTabBar() {
+    final tabs = ['About', 'Services & Gear', 'Past Work', 'Verification'];
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.glassBorder)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(tabs.length, (idx) {
+          final isActive = _selectedTabIndex == idx;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedTabIndex = idx),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                border: isActive
+                    ? const Border(bottom: BorderSide(color: AppColors.primary, width: 2.5))
+                    : null,
+              ),
+              child: Text(
+                tabs[idx],
+                style: TextStyle(
+                  color: isActive ? Colors.white : AppColors.textSecondary,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildActiveTabContent(VendorModel vendor) {
+    switch (_selectedTabIndex) {
+      case 0:
+        return _buildAboutTab(vendor);
+      case 1:
+        return _buildServicesTab(vendor);
+      case 2:
+        return _buildPastWorkTab(vendor);
+      case 3:
+      default:
+        return _buildVerificationTab(vendor);
+    }
+  }
+
+  Widget _buildAboutTab(VendorModel vendor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Business Overview',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          vendor.description ?? 'Certified high-capacity event production partner with verified logistics, crew, and technical equipment.',
+          style: const TextStyle(color: AppColors.textSecondary, height: 1.6, fontSize: 14),
+        ),
+        const SizedBox(height: 24),
+        const Text('Operational Highlights', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 12),
+        _buildHighlightRow(Icons.check_circle_outline, 'ISO/NBC Compliant Rigging and Certified Electrical Distribution'),
+        _buildHighlightRow(Icons.schedule, 'Punctual Load-In and On-Site Audio/Light Engineers Included'),
+        _buildHighlightRow(Icons.security, 'Full Platform Escrow Protection with Milestone Release'),
+      ],
+    );
+  }
+
+  Widget _buildServicesTab(VendorModel vendor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Equipment & Capabilities', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 12),
+        const Text(
+          'Verified technical gear available for immediate deployment across festivals, concerts, and luxury weddings.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5),
+        ),
+        const SizedBox(height: 16),
+        _buildCapabilityCard('Live Sound Reinforcement', 'Dual 18" Subwoofers, Line Array Tops, Digital Mixing Console (32+ Channels)'),
+        _buildCapabilityCard('Stage Lighting & Atmospheric SFX', 'Sharpy Moving Heads, LED Wash Pars, Haze Machines, DMX Controllers'),
+        _buildCapabilityCard('Rigging & Structural Support', 'Heavy-Duty Aluminum Box Truss (IS 875 Wind-Load Certified)'),
+      ],
+    );
+  }
+
+  Widget _buildPastWorkTab(VendorModel vendor) {
+    final images = vendor.portfolioImages ?? [];
+    if (images.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('No portfolio images published yet.', style: TextStyle(color: AppColors.textSecondary)),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Production Portfolio', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('${images.length} Photos', style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: images.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemBuilder: (context, idx) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(images[idx], fit: BoxFit.cover),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerificationTab(VendorModel vendor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Verification & Escrow Ledger', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+          ),
+          child: const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.verified_user_rounded, color: Color(0xFF10B981), size: 20),
+                  SizedBox(width: 8),
+                  Text('Eventology Verified Merchant', style: TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.bold, fontSize: 13)),
+                ],
+              ),
+              SizedBox(height: 8),
+              Text(
+                'GST Registration, PAN identity, commercial warehouse, and bank disbursement accounts have been vetted.',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildHighlightRow(Icons.lock_outline, 'Payment is held in secure platform escrow until post-event sign-off.'),
+        _buildHighlightRow(Icons.assignment_return_outlined, 'Standard 100% refund on cancellations > 30 days prior to load-in.'),
+      ],
+    );
+  }
+
+  Widget _buildHighlightRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTabItem('About', isActive: true),
-          _buildTabItem('Past Work', isActive: false),
-          _buildTabItem('Reviews', isActive: false),
+          Icon(icon, color: AppColors.primary, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: const TextStyle(color: Colors.white70, fontSize: 13, height: 1.4)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTabItem(String text, {required bool isActive}) {
+  Widget _buildCapabilityCard(String title, String desc) {
     return Container(
-      padding: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        border: isActive
-            ? const Border(bottom: BorderSide(color: AppColors.primary, width: 2))
-            : null,
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.glassBorder),
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isActive ? Colors.white : AppColors.textSecondary,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+          const SizedBox(height: 4),
+          Text(desc, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4)),
+        ],
       ),
     );
   }
 
   Widget _buildHeroImage(BuildContext context, VendorModel vendor) {
-    final hasImages =
-        vendor.portfolioImages != null && vendor.portfolioImages!.isNotEmpty;
+    final hasImages = vendor.portfolioImages != null && vendor.portfolioImages!.isNotEmpty;
     final bgImage = hasImages
         ? vendor.portfolioImages!.first
         : 'https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=1000&auto=format&fit=crop';
 
     return SizedBox(
-      height: 520,
+      height: 480,
       child: Stack(
         children: [
-          // Full background
           Container(
             width: double.infinity,
-            height: 520,
+            height: 480,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(bgImage),
@@ -267,151 +374,85 @@ class VendorDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Dark gradient overlay
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.3),
-                  Colors.black.withOpacity(0.6),
-                  const Color(0xFF0D0D0F), // Deep background color
+                  Colors.black.withValues(alpha: 0.3),
+                  Colors.black.withValues(alpha: 0.6),
+                  const Color(0xFF0D0D0F),
                 ],
                 stops: const [0.0, 0.5, 1.0],
               ),
             ),
           ),
-          // Content
           Positioned(
-            bottom: 32,
-            left: 24,
-            right: 24,
+            bottom: 24,
+            left: 20,
+            right: 20,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Circular Profile Pic
                 Container(
-                  width: 110,
-                  height: 110,
+                  width: 96,
+                  height: 96,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primary, width: 3),
+                    border: Border.all(color: AppColors.primary, width: 2.5),
                     image: DecorationImage(
                       image: NetworkImage(bgImage),
                       fit: BoxFit.cover,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.3),
-                        blurRadius: 30,
-                        spreadRadius: 0,
-                      ),
-                    ],
                   ),
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      vendor.businessName,
-                      style: const TextStyle(
-                        fontSize: 36,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    if (vendor.verified) ...[
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.verified,
-                        color: AppColors.primary,
-                        size: 28,
-                      ),
-                    ],
-                  ],
                 ),
                 const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildMetric(
-                      Icons.star,
-                      '${vendor.rating?.toStringAsFixed(1) ?? '4.9'} Rating',
+                    Flexible(
+                      child: Text(
+                        vendor.businessName,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 24),
-                    _buildMetric(Icons.event_available, '120+ Events Done'),
+                    if (vendor.verified) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.verified, color: AppColors.primary, size: 24),
+                    ],
                   ],
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 12),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: AppColors.primary),
-                          foregroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Know More',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildMetric(Icons.star, '${vendor.rating?.toStringAsFixed(1) ?? '4.9'} Rating'),
                     const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => _handleEnquiry(context, vendor),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'Message to Book',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildMetric(Icons.event_available, '120+ Gigs Done'),
                   ],
                 ),
               ],
             ),
           ),
-          // Back Button
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(12.0),
               child: IconButton(
                 icon: Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
+                    border: Border.all(color: Colors.white24),
                   ),
-                  child: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
                 ),
                 onPressed: () => Navigator.of(context).pop(),
               ),
@@ -424,28 +465,23 @@ class VendorDetailScreen extends StatelessWidget {
 
   Widget _buildMetric(IconData icon, String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.primary, size: 14),
-          const SizedBox(width: 6),
+          Icon(icon, color: AppColors.primary, size: 13),
+          const SizedBox(width: 5),
           Text(
             text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
           ),
         ],
       ),
     );
   }
 }
-

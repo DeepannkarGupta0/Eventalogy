@@ -1,0 +1,22 @@
+{
+  "name": "@eventology/drawio-floorplan",
+  "version": "1.0.0",
+  "description": "Deterministic Draw.io (diagrams.net) mxGraphModel XML Floorplan Serializer for Live Event Venues",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "keywords": [
+    "drawio",
+    "diagrams-net",
+    "floorplan",
+    "cad",
+    "spatial",
+    "event-production",
+    "svg",
+    "xml"
+  ],
+  "author": "Eventology Engineering & Architecture Team",
+  "license": "Apache-2.0"
+}

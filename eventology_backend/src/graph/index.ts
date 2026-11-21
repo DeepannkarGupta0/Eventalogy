@@ -1,4 +1,4 @@
-import { StateGraph, END, START, Send } from "@langchain/langgraph";
+import { StateGraph, END, START, Send, MemorySaver } from "@langchain/langgraph";
 import { GraphState, type StateType, type WorkflowStage } from "./state";
 import { FirestoreCheckpointer } from "../services/firestore_checkpointer";
 
@@ -11,12 +11,18 @@ import { vendorAgentNode } from "../agents/vendor_agent";
 import { serviceAgentNode } from "../agents/service_agent";
 import { availabilityAgentNode } from "../agents/availability_agent";
 import { budgetAgentNode } from "../agents/budget_agent";
+import { engineeringVerificationAgentNode } from "../agents/engineering_verification_agent";
+import { technicalReviewAgentNode } from "../agents/technical_review_agent";
+import { logisticsAgentNode } from "../agents/logistics_agent";
 import { approvalAgentNode } from "../agents/approval_agent";
 import { bookingAgentNode } from "../agents/booking_agent";
 import { communicationAgentNode } from "../agents/communication_agent";
 
 // ─── Firestore checkpointer (replaces MemorySaver) ───────────────────────────
-const checkpointer = new FirestoreCheckpointer();
+if (process.env.NODE_ENV === "production" && !process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error("[FATAL] Production LangGraph engine requires FIREBASE_SERVICE_ACCOUNT credentials for FirestoreCheckpointer.");
+}
+const checkpointer = process.env.FIREBASE_SERVICE_ACCOUNT ? new FirestoreCheckpointer() : new MemorySaver();
 
 // ─── Orchestrator routing function ───────────────────────────────────────────
 // Reads state.currentAgent (set by the orchestrator LLM) and routes accordingly.
@@ -38,6 +44,9 @@ function orchestratorRoute(state: StateType): string | Send[] {
     next === "event_planning_agent" ||
     next === "availability_agent" ||
     next === "budget_agent" ||
+    next === "engineering_verification_agent" ||
+    next === "technical_review_agent" ||
+    next === "logistics_agent" ||
     next === "approval_agent" ||
     next === "booking_agent" ||
     next === "communication_agent"
@@ -50,7 +59,7 @@ function orchestratorRoute(state: StateType): string | Send[] {
 
 // ─── Build the graph ──────────────────────────────────────────────────────────
 const workflow = new StateGraph(GraphState)
-  // Register all 11 nodes
+  // Register all 14 nodes
   .addNode("orchestrator_agent", orchestratorAgentNode)
   .addNode("event_intake_agent", eventIntakeAgentNode)
   .addNode("event_planning_agent", eventPlanningAgentNode)
@@ -59,6 +68,9 @@ const workflow = new StateGraph(GraphState)
   .addNode("service_agent", serviceAgentNode)
   .addNode("availability_agent", availabilityAgentNode)
   .addNode("budget_agent", budgetAgentNode)
+  .addNode("engineering_verification_agent", engineeringVerificationAgentNode)
+  .addNode("technical_review_agent", technicalReviewAgentNode)
+  .addNode("logistics_agent", logisticsAgentNode)
   .addNode("approval_agent", approvalAgentNode)
   .addNode("booking_agent", bookingAgentNode)
   .addNode("communication_agent", communicationAgentNode)
@@ -76,6 +88,9 @@ const workflow = new StateGraph(GraphState)
   .addEdge("event_planning_agent", "orchestrator_agent")
   .addEdge("availability_agent", "orchestrator_agent")
   .addEdge("budget_agent", "orchestrator_agent")
+  .addEdge("engineering_verification_agent", "orchestrator_agent")
+  .addEdge("technical_review_agent", "orchestrator_agent")
+  .addEdge("logistics_agent", "orchestrator_agent")
   .addEdge("booking_agent", "orchestrator_agent")
 
   // Approval routes back to orchestrator after interrupt/resume

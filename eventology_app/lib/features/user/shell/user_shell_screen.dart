@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../events/widgets/create_event_sheet.dart';
 
 class UserShellScreen extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
@@ -49,10 +50,10 @@ class _UserShellScreenState extends State<UserShellScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                _buildNavItem(0, Icons.home_rounded, 'Home'),
-                _buildNavItem(1, Icons.event_note_rounded, 'Browse'),
+                _buildNavItem(0, Icons.explore_rounded, 'Explore'),
+                _buildNavItem(1, Icons.storefront_rounded, 'Catalog'),
                 _buildFab(context),
-                _buildNavItem(2, Icons.grid_view_rounded, 'Events'),
+                _buildNavItem(2, Icons.layers_rounded, 'My Events'),
                 _buildNavItem(3, Icons.person_rounded, 'Profile'),
               ],
             ),
@@ -68,14 +69,14 @@ class _UserShellScreenState extends State<UserShellScreen> {
       onTap: () => changeTab(index),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 48,
+        width: 52,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              size: 28,
+              size: 24,
             ),
             const SizedBox(height: 4),
             Text(
@@ -94,12 +95,12 @@ class _UserShellScreenState extends State<UserShellScreen> {
 
   Widget _buildFab(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/ai-planner'),
+      onTap: () => CreateEventSheet.show(context),
       child: Transform.translate(
-        offset: const Offset(0, -24), // Moves the button up like the HTML template
+        offset: const Offset(0, -20),
         child: Container(
-          width: 56,
-          height: 56,
+          width: 54,
+          height: 54,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
@@ -109,13 +110,13 @@ class _UserShellScreenState extends State<UserShellScreen> {
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.3),
-                blurRadius: 20,
+                color: AppColors.primary.withValues(alpha: 0.35),
+                blurRadius: 16,
                 spreadRadius: 2,
               ),
             ],
           ),
-          child: const Icon(Icons.add, color: Colors.black, size: 32),
+          child: const Icon(Icons.add, color: Colors.black, size: 30),
         ),
       ),
     );

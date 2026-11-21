@@ -112,6 +112,11 @@ void main() {
       expect(dummyResult, isEmpty);
     });
 
+    test('EnquiriesRepository.streamCustomerEnquiries emits empty list for empty customer IDs', () async {
+      final emptyResult = await EnquiriesRepository.streamCustomerEnquiries('').first;
+      expect(emptyResult, isEmpty);
+    });
+
     testWidgets('VendorEnquiriesView safely displays guard message if vendorId is dummy or empty', (tester) async {
       final dummyVendor = VendorModel(
         vendorId: 'test_vendor_id',

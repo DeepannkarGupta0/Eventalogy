@@ -1,16 +1,22 @@
-﻿import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-
+import 'package:flutter/material.dart';
 import '../../../../services/firestore/catalog_repository.dart';
 import '../../../../models/venue_model.dart';
 import '../../../../core/theme/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../services/auth_state_notifier.dart';
 import '../widgets/manual_enquiry_sheet.dart';
+import 'package:go_router/go_router.dart';
 
-class VenueDetailScreen extends StatelessWidget {
+class VenueDetailScreen extends StatefulWidget {
   final String venueId;
   const VenueDetailScreen({super.key, required this.venueId});
+
+  @override
+  State<VenueDetailScreen> createState() => _VenueDetailScreenState();
+}
+
+class _VenueDetailScreenState extends State<VenueDetailScreen> {
+  int _selectedTabIndex = 0;
 
   void _handleEnquiry(BuildContext context, VenueModel venue) async {
     final user = authStateNotifier.user ?? FirebaseAuth.instance.currentUser;
@@ -43,7 +49,7 @@ class VenueDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<VenueModel?>(
-      future: CatalogRepository.getVenue(venueId),
+      future: CatalogRepository.getVenue(widget.venueId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -88,163 +94,47 @@ class VenueDetailScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeroImage(context, venue),
-                _buildFakeTabBar(),
+                _buildInteractiveTabBar(),
                 Padding(
                   padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildStatColumn(
-                            Icons.group,
-                            '${venue.capacity}',
-                            'Max Capacity',
-                          ),
-                          _buildStatColumn(
-                            Icons.star,
-                            '4.9',
-                            'Rating',
-                          ), // Mock rating
-                          if (venue.priceFrom != null)
-                            _buildStatColumn(
-                              Icons.currency_rupee,
-                              '${(venue.priceFrom! / 100000).toStringAsFixed(1)}L',
-                              'Starting Price',
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      const Text(
-                        'The Narrative',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        venue.description ?? 'An exclusive luxury venue designed to host the most magnificent celebrations.',
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      const Text(
-                        'Experience Areas',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildExperienceAreasGrid(),
-                      const SizedBox(height: 32),
-                      if (venue.amenities.isNotEmpty) ...[
-                        const Text(
-                          'Curated Services',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: venue.amenities
-                              .map(
-                                (a) => Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surface,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: AppColors.glassBorder,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    a,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                        const SizedBox(height: 100), // padding for bottom bar
-                      ],
-                    ],
-                  ),
+                  child: _buildActiveTabContent(venue),
                 ),
+                const SizedBox(height: 100),
               ],
             ),
           ),
           bottomNavigationBar: Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
-              color: AppColors.surface.withOpacity(0.95),
+              color: const Color(0xFF121622),
               border: const Border(
                 top: BorderSide(color: AppColors.glassBorder),
               ),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => context.push('/ai-planner'),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: AppColors.primary),
-                      foregroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+            child: SafeArea(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _handleEnquiry(context, venue),
+                      icon: const Icon(Icons.calendar_month_rounded, size: 20),
+                      label: const Text(
+                        'Enquire Date Availability & Quote',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                       ),
-                    ),
-                    child: const Text(
-                      'Add to AI Plan',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _handleEnquiry(context, venue),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Enquire Availability',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 0,
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
@@ -252,28 +142,231 @@ class VenueDetailScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildInteractiveTabBar() {
+    final tabs = ['The Venue', 'Spaces & Lawns', 'Pricing & Policy', 'Gallery'];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.glassBorder)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(tabs.length, (idx) {
+          final isActive = _selectedTabIndex == idx;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedTabIndex = idx),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              decoration: BoxDecoration(
+                border: isActive
+                    ? const Border(bottom: BorderSide(color: AppColors.primary, width: 2.5))
+                    : null,
+              ),
+              child: Text(
+                tabs[idx],
+                style: TextStyle(
+                  color: isActive ? Colors.white : AppColors.textSecondary,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildActiveTabContent(VenueModel venue) {
+    switch (_selectedTabIndex) {
+      case 0:
+        return _buildVenueOverviewTab(venue);
+      case 1:
+        return _buildSpacesTab(venue);
+      case 2:
+        return _buildPricingTab(venue);
+      case 3:
+      default:
+        return _buildGalleryTab(venue);
+    }
+  }
+
+  Widget _buildVenueOverviewTab(VenueModel venue) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStatColumn(Icons.group, '${venue.capacity}', 'Max Capacity'),
+            _buildStatColumn(Icons.star, '4.9', 'Rating'),
+            if (venue.priceFrom != null)
+              _buildStatColumn(Icons.currency_rupee, '${(venue.priceFrom! / 100000).toStringAsFixed(1)}L', 'Starting Price'),
+          ],
+        ),
+        const SizedBox(height: 28),
+        const Text(
+          'Venue Story & Atmosphere',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          venue.description ?? 'An exclusive luxury venue designed to host the most magnificent celebrations with grand architectural backdrops.',
+          style: const TextStyle(color: AppColors.textSecondary, height: 1.6, fontSize: 14),
+        ),
+        const SizedBox(height: 24),
+        if (venue.amenities.isNotEmpty) ...[
+          const Text('Curated Services & Amenities', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: venue.amenities.map((a) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.glassBorder),
+                ),
+                child: Text(a, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+              );
+            }).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSpacesTab(VenueModel venue) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Experience Spaces & Lawns', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 8),
+        const Text(
+          'Breakdown of individual halls and open lawn areas available for staging, ceremonies, and dining.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.4),
+        ),
+        const SizedBox(height: 20),
+        _buildExperienceAreasGrid(),
+      ],
+    );
+  }
+
+  Widget _buildPricingTab(VenueModel venue) {
+    final startPrice = venue.priceFrom != null ? '₹${(venue.priceFrom! / 100000).toStringAsFixed(1)} Lakhs' : 'On Request';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Transparent Pricing & Policies', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        const SizedBox(height: 14),
+        _buildPricingRow('Base Venue Rental', startPrice, 'Includes 24-hour venue access, green rooms, and basic power'),
+        _buildPricingRow('Dining / Per Plate Rate', '₹2,500 - ₹4,000 / guest', 'Varies by chosen catering package (Royal Marwari / Pan-Asian)'),
+        _buildPricingRow('Municipal Noise Curfew', '10:00 PM (Strict)', 'Open lawns must transition amplified sound indoors by 10 PM'),
+        _buildPricingRow('Platform Escrow Guarantee', '100% Protected', 'Security deposit held in escrow until load-out inspection'),
+        const SizedBox(height: 20),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: AppColors.primary, size: 20),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Cancellation: 100% refund for cancellations > 60 days before event date.',
+                  style: TextStyle(color: Colors.white70, fontSize: 12, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGalleryTab(VenueModel venue) {
+    final images = venue.images;
+    if (images.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('No gallery images available.', style: TextStyle(color: AppColors.textSecondary)),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Venue Architecture Gallery', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+            Text('${images.length} Photos', style: const TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: images.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemBuilder: (context, idx) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(images[idx], fit: BoxFit.cover),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPricingRow(String title, String cost, String subtitle) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.glassBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+              Text(cost, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.4)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStatColumn(IconData icon, String value, String label) {
     return Column(
       children: [
-        Icon(icon, color: AppColors.primary, size: 28),
-        const SizedBox(height: 8),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        Icon(icon, color: AppColors.primary, size: 26),
+        const SizedBox(height: 6),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18)),
+        const SizedBox(height: 2),
+        Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -284,13 +377,12 @@ class VenueDetailScreen extends StatelessWidget {
         : 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=1000&auto=format&fit=crop';
 
     return SizedBox(
-      height: 520,
+      height: 460,
       child: Stack(
         children: [
-          // Background Image
           Container(
             width: double.infinity,
-            height: 520,
+            height: 460,
             decoration: BoxDecoration(
               image: DecorationImage(
                 image: NetworkImage(bgImage),
@@ -298,108 +390,94 @@ class VenueDetailScreen extends StatelessWidget {
               ),
             ),
           ),
-          // Dark gradient overlay
           Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.4),
-                  Colors.black.withOpacity(0.7),
+                  Colors.black.withValues(alpha: 0.4),
+                  Colors.black.withValues(alpha: 0.7),
                   const Color(0xFF0D0D0F),
                 ],
                 stops: const [0.0, 0.6, 1.0],
               ),
             ),
           ),
-          // Back Button
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             left: 16,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white24),
+                ),
+                child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
-          // Content
           Positioned(
-            bottom: 32,
-            left: 24,
-            right: 24,
+            bottom: 24,
+            left: 20,
+            right: 20,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Container(
-                  width: 120,
-                  height: 120,
+                  width: 96,
+                  height: 96,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primary, width: 3),
+                    border: Border.all(color: AppColors.primary, width: 2.5),
                     image: DecorationImage(
                       image: NetworkImage(bgImage),
                       fit: BoxFit.cover,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.4),
-                        blurRadius: 30,
-                        spreadRadius: 0,
-                      ),
-                    ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 Text(
                   venue.name,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 32,
+                    fontSize: 26,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
                     letterSpacing: -0.5,
                   ),
                 ),
                 if (venue.verified) ...[
-                  const SizedBox(height: 8),
-                  Row(
+                  const SizedBox(height: 6),
+                  const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.verified,
-                        color: AppColors.primary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
+                      Icon(Icons.verified, color: AppColors.primary, size: 18),
+                      SizedBox(width: 6),
+                      Text(
                         'Eventology Verified Venue',
                         style: TextStyle(
                           color: AppColors.primary,
-                          fontSize: 12,
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 1.5,
+                          letterSpacing: 1.2,
                         ),
                       ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 16),
-                Row(
+                const SizedBox(height: 8),
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.location_on,
-                      color: AppColors.textSecondary,
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text(
+                    Icon(Icons.location_on, color: AppColors.textSecondary, size: 14),
+                    SizedBox(width: 4),
+                    Text(
                       'Raipur, India',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -411,49 +489,12 @@ class VenueDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildFakeTabBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.glassBorder)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildTabItem('The Venue', isActive: true),
-          _buildTabItem('Spaces', isActive: false),
-          _buildTabItem('Reviews', isActive: false),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabItem(String text, {required bool isActive}) {
-    return Container(
-      padding: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        border: isActive
-            ? const Border(
-                bottom: BorderSide(color: AppColors.primary, width: 2),
-              )
-            : null,
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: isActive ? Colors.white : AppColors.textSecondary,
-          fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
-  }
-
   Widget _buildExperienceAreasGrid() {
     final areas = [
       {'name': 'Grand Ballroom', 'icon': Icons.business, 'capacity': '800 Pax'},
-      {'name': 'Poolside', 'icon': Icons.pool, 'capacity': '200 Pax'},
-      {'name': 'Lush Lawns', 'icon': Icons.park, 'capacity': '1500 Pax'},
-      {'name': 'Banquet Hall', 'icon': Icons.restaurant, 'capacity': '400 Pax'},
+      {'name': 'Poolside Terrace', 'icon': Icons.pool, 'capacity': '200 Pax'},
+      {'name': 'Royal Lawns', 'icon': Icons.park, 'capacity': '1500 Pax'},
+      {'name': 'Banquet Dining Hall', 'icon': Icons.restaurant, 'capacity': '400 Pax'},
     ];
 
     return GridView.builder(
@@ -462,45 +503,34 @@ class VenueDetailScreen extends StatelessWidget {
       padding: EdgeInsets.zero,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.1,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
+        childAspectRatio: 1.15,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
       ),
       itemCount: areas.length,
       itemBuilder: (context, index) {
         final area = areas[index];
         return Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.glassBorder),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                area['icon'] as IconData,
-                color: AppColors.primary,
-                size: 32,
-              ),
+              Icon(area['icon'] as IconData, color: AppColors.primary, size: 28),
               const Spacer(),
               Text(
                 area['name'] as String,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
                 area['capacity'] as String,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
               ),
             ],
           ),
@@ -509,4 +539,3 @@ class VenueDetailScreen extends StatelessWidget {
     );
   }
 }
-

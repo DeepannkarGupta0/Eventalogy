@@ -33,7 +33,7 @@ class VenueListingScreen extends StatelessWidget {
                   SizedBox(height: 16),
                   Text('No venues available', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                   SizedBox(height: 8),
-                  Text('Check back later or ask the AI Architect.', style: TextStyle(color: AppColors.textSecondary)),
+                  Text('Check back later or adjust your filters.', style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             );

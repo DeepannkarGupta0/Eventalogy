@@ -47,6 +47,20 @@ class EnquiriesRepository {
         .map((s) => s.docs.map((d) => EnquiryModel.fromFirestore(d)).toList());
   }
 
+  static Stream<List<EnquiryModel>> streamCustomerEnquiries(String customerId) {
+    if (customerId.trim().isEmpty) {
+      return Stream.value(<EnquiryModel>[]);
+    }
+    return _col
+        .where('customerId', isEqualTo: customerId)
+        .snapshots()
+        .map((s) {
+          final list = s.docs.map((d) => EnquiryModel.fromFirestore(d)).toList();
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list;
+        });
+  }
+
   static Future<void> acceptEnquiry(String id) async {
     return _db.runTransaction((transaction) async {
       final docRef = _col.doc(id);

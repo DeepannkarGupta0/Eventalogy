@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/firebase/firestore_config.dart';
-import '../../core/database/collections.dart';
 import '../../models/events_model.dart';
 
 class EventsRepository {
@@ -43,9 +42,22 @@ class EventsRepository {
 
   static Future<EventModel?> getEvent(String id) => get(id);
 
+  static Future<void> updateConversationId(String eventId, String conversationId) async {
+    await _col.doc(eventId).update({
+      'conversationId': conversationId,
+      'workflowId': conversationId,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   static Stream<List<EventModel>> streamUserEvents(String userId) {
     return _col
-        .where('userId', isEqualTo: userId)
+        .where(
+          Filter.or(
+            Filter('userId', isEqualTo: userId),
+            Filter('customerId', isEqualTo: userId),
+          ),
+        )
         .snapshots()
         .map((s) => s.docs.map((d) => EventModel.fromFirestore(d)).toList());
   }

@@ -13,6 +13,8 @@ class EventModel {
   final Map<String, dynamic>? requirements;
   final String status;
   final String? paymentStatus;
+  final String? conversationId;
+  final String? workflowId;
   final Timestamp createdAt;
   final Timestamp? updatedAt;
 
@@ -29,15 +31,20 @@ class EventModel {
     this.requirements,
     required this.status,
     this.paymentStatus,
+    this.conversationId,
+    this.workflowId,
     required this.createdAt,
     this.updatedAt,
   });
 
   factory EventModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    final reqs = data['requirements'] != null && data['requirements'] is Map
+        ? Map<String, dynamic>.from(data['requirements'] as Map)
+        : null;
     return EventModel(
       eventId: data['eventId'] as String? ?? doc.id,
-      customerId: data['customerId'] as String? ?? '',
+      customerId: (data['customerId'] as String?) ?? (data['userId'] as String?) ?? '',
       eventTypeId: data['eventTypeId'] as String? ?? '',
       title: data['title'] as String? ?? '',
       eventDate: data['eventDate'] as Timestamp? ?? Timestamp.now(),
@@ -45,9 +52,11 @@ class EventModel {
       budget: (data['budget'] as num?)?.toDouble(),
       locationId: data['locationId'] as String?,
       venueId: data['venueId'] as String?,
-      requirements: data['requirements'] != null ? Map<String, dynamic>.from(data['requirements'] as Map) : null,
+      requirements: reqs,
       status: data['status'] as String? ?? '',
       paymentStatus: data['paymentStatus'] as String?,
+      conversationId: data['conversationId'] as String? ?? (reqs?['conversationId'] as String?),
+      workflowId: data['workflowId'] as String? ?? (reqs?['workflowId'] as String?),
       createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
       updatedAt: data['updatedAt'] as Timestamp?,
     );
@@ -57,6 +66,7 @@ class EventModel {
     return {
       'eventId': eventId,
       'customerId': customerId,
+      'userId': customerId, // maintain dual query compatibility for security & repository filters
       'eventTypeId': eventTypeId,
       'title': title,
       'eventDate': eventDate,
@@ -67,6 +77,8 @@ class EventModel {
       if (requirements != null) 'requirements': requirements,
       'status': status,
       if (paymentStatus != null) 'paymentStatus': paymentStatus,
+      if (conversationId != null) 'conversationId': conversationId,
+      if (workflowId != null) 'workflowId': workflowId,
       'createdAt': createdAt,
       if (updatedAt != null) 'updatedAt': updatedAt,
     };
@@ -85,6 +97,8 @@ class EventModel {
     Map<String, dynamic>? requirements,
     String? status,
     String? paymentStatus,
+    String? conversationId,
+    String? workflowId,
     Timestamp? createdAt,
     Timestamp? updatedAt,
   }) {
@@ -101,6 +115,8 @@ class EventModel {
       requirements: requirements ?? this.requirements,
       status: status ?? this.status,
       paymentStatus: paymentStatus ?? this.paymentStatus,
+      conversationId: conversationId ?? this.conversationId,
+      workflowId: workflowId ?? this.workflowId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

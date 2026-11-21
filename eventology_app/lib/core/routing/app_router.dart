@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/login_screen.dart';
@@ -7,15 +7,9 @@ import '../../features/user/home/user_home_view.dart';
 import '../../features/user/planner/user_planner_view.dart';
 import '../../features/user/planner/event_planner_screen.dart';
 import '../../features/user/profile/user_profile_view.dart';
-import '../../features/user/ai/screens/ai_chat_screen.dart';
-import '../../features/user/ai/screens/ai_planner_flow_screen.dart';
-import '../../features/user/ai/screens/ai_generated_plan_screen.dart';
-import '../../features/user/ai/screens/payment_overview_screen.dart';
-import '../../models/ai/models.dart';
-import '../../features/user/ai/models/agent_models.dart';
-import '../../features/user/events/screens/plan_review_screen.dart';
 import '../../features/user/events/screens/my_events_screen.dart';
 import '../../features/user/events/screens/event_detail_screen.dart';
+import '../../features/user/enquiries/screens/customer_enquiries_screen.dart';
 import '../../features/user/catalog/screens/vendor_listing_screen.dart';
 import '../../features/user/catalog/screens/venue_listing_screen.dart';
 import '../../features/user/catalog/screens/vendor_detail_screen.dart';
@@ -25,15 +19,20 @@ import '../../features/vendor/shell/vendor_shell_screen.dart';
 import '../../features/vendor/dashboard/vendor_dashboard_view.dart';
 import '../../features/vendor/enquiries/vendor_enquiries_view.dart';
 import '../../features/vendor/bookings/vendor_bookings_view.dart';
+import '../../features/vendor/settlements/vendor_settlements_ledger_view.dart';
 import '../../features/vendor/profile/vendor_profile_view.dart';
+import '../../features/vendor/availability/vendor_availability_view.dart';
 import '../../features/auth/signup_screen.dart';
 import '../../services/auth_state_notifier.dart';
-import '../../services/demo_session_notifier.dart';
-import '../../features/demo/screens/user_demo_screen.dart';
-import '../../features/demo/screens/vendor_demo_screen.dart';
 import '../../features/user/whatsapp/whatsapp_link_screen.dart';
 import '../../features/user/profile/become_vendor_screen.dart';
 
+import '../../features/user/bookings/screens/customer_bookings_screen.dart';
+import '../../features/user/bookings/screens/booking_checkout_screen.dart';
+import '../../features/user/procurement/screens/event_procurement_screen.dart';
+import '../../features/user/operations/screens/live_run_of_show_screen.dart';
+import '../../features/user/operations/screens/crew_station_screen.dart';
+import '../../features/vendor/rfq/vendor_rfq_inbox_view.dart';
 import '../../features/auth/splash_screen.dart';
 
 class LoadingScreen extends StatelessWidget {
@@ -46,7 +45,7 @@ class LoadingScreen extends StatelessWidget {
 
 final appRouter = GoRouter(
   initialLocation: '/',
-  refreshListenable: Listenable.merge([authStateNotifier, demoSessionNotifier]),
+  refreshListenable: authStateNotifier,
   redirect: (context, state) {
     // If it's the splash screen, let it be. Splash screen will handle its own routing.
     if (state.matchedLocation == '/') {
@@ -77,24 +76,16 @@ final appRouter = GoRouter(
       return '/home';
     }
 
-    // 3. Admin Routing & Demo Mode
+    // 3. Admin Routing
     if (role == 'admin') {
-      if (state.matchedLocation == '/demo/user') {
-        return demoSessionNotifier.isUserDemo ? null : '/admin';
-      }
-      if (state.matchedLocation == '/demo/vendor') {
-        return demoSessionNotifier.isVendorDemo ? null : '/admin';
-      }
       if (state.matchedLocation.startsWith('/admin')) {
         return null;
       }
-      // Admins are restricted to Admin Dashboard and active demos
       return '/admin';
     }
 
-    // 4. Non-admins cannot access Admin or Demo routes
-    if (state.matchedLocation.startsWith('/admin') ||
-        state.matchedLocation.startsWith('/demo')) {
+    // 4. Non-admins cannot access Admin routes
+    if (state.matchedLocation.startsWith('/admin')) {
       if (role == 'vendor') return '/vendor';
       return '/home';
     }
@@ -125,14 +116,6 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/admin',
       builder: (context, state) => const AdminDashboardScreen(),
-    ),
-    GoRoute(
-      path: '/demo/user',
-      builder: (context, state) => const UserDemoScreen(),
-    ),
-    GoRoute(
-      path: '/demo/vendor',
-      builder: (context, state) => const VendorDemoScreen(),
     ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -166,6 +149,14 @@ final appRouter = GoRouter(
         StatefulShellBranch(
           routes: [
             GoRoute(
+              path: '/vendor/settlements',
+              builder: (context, state) => const VendorSettlementsLedgerView(),
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
               path: '/vendor/profile',
               builder: (context, state) => const VendorProfileView(),
             ),
@@ -174,37 +165,17 @@ final appRouter = GoRouter(
       ],
     ),
     GoRoute(
-      path: '/ai-planner',
-      builder: (context, state) => const AIPlannerFlowScreen(),
+      path: '/vendor/availability',
+      builder: (context, state) => const VendorAvailabilityView(),
     ),
     GoRoute(
-      path: '/ai-chat',
+      path: '/vendor/rfqs',
       builder: (context, state) {
-        final initialMessage = state.extra as String?;
-        return AIChatScreen(initialMessage: initialMessage);
-      },
-    ),
-    GoRoute(
-      path: '/ai-generated',
-      builder: (context, state) {
-        final plan = state.extra as AIGeneratedPlan;
-        return AIGeneratedPlanScreen(plan: plan);
-      },
-    ),
-    GoRoute(
-      path: '/payment-overview',
-      builder: (context, state) {
-        final total = state.extra as String;
-        return PaymentOverviewScreen(estimatedTotal: total);
-      },
-    ),
-    GoRoute(
-      path: '/plan-review',
-      builder: (context, state) {
-        final extra = state.extra as Map<String, dynamic>;
-        return PlanReviewScreen(
-          conversationId: extra['conversationId'] as String,
-          state: extra['state'] as AgentWorkflowState,
+        final vendorId = state.uri.queryParameters['vendorId'];
+        final vendorName = state.uri.queryParameters['vendorName'];
+        return VendorRfqInboxView(
+          vendorId: vendorId,
+          vendorName: vendorName,
         );
       },
     ),
@@ -216,6 +187,57 @@ final appRouter = GoRouter(
       path: '/my-events/:id',
       builder: (context, state) =>
           EventDetailScreen(eventId: state.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/procurement/:workflowId',
+      builder: (context, state) {
+        final workflowId = state.pathParameters['workflowId']!;
+        final extra = state.extra as Map<String, dynamic>?;
+        return EventProcurementScreen(
+          workflowId: workflowId,
+          eventName: extra?['eventName'] as String?,
+          rfqBatchId: extra?['rfqBatchId'] as String?,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/operations/live-ros',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final eventId = extra?['eventId'] as String? ?? 'live-event-current';
+        final eventTitle = extra?['eventTitle'] as String?;
+        return LiveRunOfShowScreen(
+          eventId: eventId,
+          eventTitle: eventTitle,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/operations/session/:eventId/station/:stationId',
+      builder: (context, state) {
+        final eventId = state.pathParameters['eventId'] ?? 'live-event-current';
+        final stationId = state.pathParameters['stationId'] ?? 'foh_audio';
+        final extra = state.extra as Map<String, dynamic>?;
+        final eventTitle = extra?['eventTitle'] as String?;
+        return CrewStationScreen(
+          eventId: eventId,
+          initialStationId: stationId,
+          eventTitle: eventTitle,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/my-enquiries',
+      builder: (context, state) => const CustomerEnquiriesScreen(),
+    ),
+    GoRoute(
+      path: '/my-bookings',
+      builder: (context, state) => const CustomerBookingsScreen(),
+    ),
+    GoRoute(
+      path: '/booking-checkout/:id',
+      builder: (context, state) =>
+          BookingCheckoutScreen(bookingId: state.pathParameters['id']!),
     ),
     GoRoute(
       path: '/link-whatsapp',

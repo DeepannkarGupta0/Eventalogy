@@ -29,7 +29,7 @@ export async function serviceAgentNode(state: StateType): Promise<Partial<StateT
   const req = state.eventRequirements;
   const plan = state.eventPlan;
 
-  const systemPrompt = `You are the Eventology Service Agent.
+  const systemPrompt = `You are the Eventalogy Service Agent.
 
 Your job is to resolve the services listed in the event plan into actual Firestore service IDs.
 

@@ -14,7 +14,7 @@ export const getEventTypesTool = tool(
   },
   {
     name: "get_event_types",
-    description: "Returns a list of valid event types available in the Eventology system.",
+    description: "Returns a list of valid event types available in the Eventalogy system.",
     schema: z.object({}),
   }
 );
@@ -31,7 +31,7 @@ export const getServicesTool = tool(
   },
   {
     name: "get_services",
-    description: "Returns a list of available service categories in Eventology.",
+    description: "Returns a list of available service categories in Eventalogy.",
     schema: z.object({}),
   }
 );

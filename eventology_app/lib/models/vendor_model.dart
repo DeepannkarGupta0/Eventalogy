@@ -20,6 +20,44 @@ class VendorModel {
   final Timestamp? updatedAt;
   final String? gstNumber;
 
+  // ── Tier 1: Legal Identity & KYC ──────────────────────────────────────────
+  final String? legalEntityName;
+  final String? tradeName;
+  final String? entityType; // 'sole_proprietorship', 'partnership', 'llp', 'pvt_ltd', 'public_ltd'
+  final String? panNumber;
+  final Map<String, dynamic>? registeredAddress;
+  final String? signatoryName;
+  final String? signatoryGovtIdUrl;
+  final String? opsEmergencyPhone;
+  final String? gstinCertificateUrl;
+
+  // ── Tier 2: Bank Settlement & Escrow Payout ───────────────────────────────
+  final String? bankAccountHolder;
+  final String? bankName;
+  final String? accountNumber;
+  final String? ifscCode;
+  final String? accountType; // 'current', 'savings'
+  final String? cancelledChequeUrl;
+  final String payoutStatus; // 'pending_verification', 'verified', 'rejected'
+
+  // ── Tier 3: Category Equipment Manifest ───────────────────────────────────
+  final Map<String, dynamic>? equipmentManifest;
+
+  // ── Tier 4: Site Operations Logistics ─────────────────────────────────────
+  final double? maxPowerDrawKva;
+  final int? coreCrewHeadcount;
+  final List<String>? transportFleet;
+  final double? setupLeadTimeHours;
+  final double? strikeTimeHours;
+  final String? spareEquipmentPolicy;
+
+  // ── Tier 5: Commercial Policies & Insurance ───────────────────────────────
+  final int? baseDayRatePaise;
+  final bool escrowTermsAccepted;
+  final String? insurancePolicyNumber;
+  final int? insuranceCoveragePaise;
+  final String? cancellationPolicy; // 'standard', 'moderate', 'strict'
+
   VendorModel({
     required this.vendorId,
     required this.userId,
@@ -39,10 +77,38 @@ class VendorModel {
     required this.createdAt,
     this.updatedAt,
     this.gstNumber,
+    this.legalEntityName,
+    this.tradeName,
+    this.entityType,
+    this.panNumber,
+    this.registeredAddress,
+    this.signatoryName,
+    this.signatoryGovtIdUrl,
+    this.opsEmergencyPhone,
+    this.gstinCertificateUrl,
+    this.bankAccountHolder,
+    this.bankName,
+    this.accountNumber,
+    this.ifscCode,
+    this.accountType,
+    this.cancelledChequeUrl,
+    this.payoutStatus = 'pending_verification',
+    this.equipmentManifest,
+    this.maxPowerDrawKva,
+    this.coreCrewHeadcount,
+    this.transportFleet,
+    this.setupLeadTimeHours,
+    this.strikeTimeHours,
+    this.spareEquipmentPolicy,
+    this.baseDayRatePaise,
+    this.escrowTermsAccepted = false,
+    this.insurancePolicyNumber,
+    this.insuranceCoveragePaise,
+    this.cancellationPolicy = 'standard',
   });
 
   factory VendorModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return VendorModel(
       vendorId: data['vendorId'] as String? ?? doc.id,
       userId: data['userId'] as String? ?? '',
@@ -61,7 +127,41 @@ class VendorModel {
       status: data['status'] as String? ?? 'pending',
       createdAt: data['createdAt'] as Timestamp? ?? Timestamp.now(),
       updatedAt: data['updatedAt'] as Timestamp?,
-      gstNumber: data['gstNumber'] as String?,
+      gstNumber: (data['gstNumber'] ?? data['gstin']) as String?,
+      legalEntityName: data['legalEntityName'] as String?,
+      tradeName: data['tradeName'] as String?,
+      entityType: data['entityType'] as String?,
+      panNumber: data['panNumber'] as String?,
+      registeredAddress: data['registeredAddress'] != null
+          ? Map<String, dynamic>.from(data['registeredAddress'] as Map)
+          : null,
+      signatoryName: data['signatoryName'] as String?,
+      signatoryGovtIdUrl: data['signatoryGovtIdUrl'] as String?,
+      opsEmergencyPhone: data['opsEmergencyPhone'] as String?,
+      gstinCertificateUrl: data['gstinCertificateUrl'] as String?,
+      bankAccountHolder: data['bankAccountHolder'] as String?,
+      bankName: data['bankName'] as String?,
+      accountNumber: data['accountNumber'] as String?,
+      ifscCode: data['ifscCode'] as String?,
+      accountType: data['accountType'] as String?,
+      cancelledChequeUrl: data['cancelledChequeUrl'] as String?,
+      payoutStatus: data['payoutStatus'] as String? ?? 'pending_verification',
+      equipmentManifest: data['equipmentManifest'] != null
+          ? Map<String, dynamic>.from(data['equipmentManifest'] as Map)
+          : null,
+      maxPowerDrawKva: (data['maxPowerDrawKva'] as num?)?.toDouble(),
+      coreCrewHeadcount: (data['coreCrewHeadcount'] as num?)?.toInt(),
+      transportFleet: data['transportFleet'] != null
+          ? List<String>.from(data['transportFleet'])
+          : null,
+      setupLeadTimeHours: (data['setupLeadTimeHours'] as num?)?.toDouble(),
+      strikeTimeHours: (data['strikeTimeHours'] as num?)?.toDouble(),
+      spareEquipmentPolicy: data['spareEquipmentPolicy'] as String?,
+      baseDayRatePaise: (data['baseDayRatePaise'] as num?)?.toInt(),
+      escrowTermsAccepted: data['escrowTermsAccepted'] as bool? ?? false,
+      insurancePolicyNumber: data['insurancePolicyNumber'] as String?,
+      insuranceCoveragePaise: (data['insuranceCoveragePaise'] as num?)?.toInt(),
+      cancellationPolicy: data['cancellationPolicy'] as String? ?? 'standard',
     );
   }
 
@@ -85,6 +185,35 @@ class VendorModel {
       'createdAt': createdAt,
       if (updatedAt != null) 'updatedAt': updatedAt,
       if (gstNumber != null) 'gstNumber': gstNumber,
+      if (gstNumber != null) 'gstin': gstNumber,
+      if (legalEntityName != null) 'legalEntityName': legalEntityName,
+      if (tradeName != null) 'tradeName': tradeName,
+      if (entityType != null) 'entityType': entityType,
+      if (panNumber != null) 'panNumber': panNumber,
+      if (registeredAddress != null) 'registeredAddress': registeredAddress,
+      if (signatoryName != null) 'signatoryName': signatoryName,
+      if (signatoryGovtIdUrl != null) 'signatoryGovtIdUrl': signatoryGovtIdUrl,
+      if (opsEmergencyPhone != null) 'opsEmergencyPhone': opsEmergencyPhone,
+      if (gstinCertificateUrl != null) 'gstinCertificateUrl': gstinCertificateUrl,
+      if (bankAccountHolder != null) 'bankAccountHolder': bankAccountHolder,
+      if (bankName != null) 'bankName': bankName,
+      if (accountNumber != null) 'accountNumber': accountNumber,
+      if (ifscCode != null) 'ifscCode': ifscCode,
+      if (accountType != null) 'accountType': accountType,
+      if (cancelledChequeUrl != null) 'cancelledChequeUrl': cancelledChequeUrl,
+      'payoutStatus': payoutStatus,
+      if (equipmentManifest != null) 'equipmentManifest': equipmentManifest,
+      if (maxPowerDrawKva != null) 'maxPowerDrawKva': maxPowerDrawKva,
+      if (coreCrewHeadcount != null) 'coreCrewHeadcount': coreCrewHeadcount,
+      if (transportFleet != null) 'transportFleet': transportFleet,
+      if (setupLeadTimeHours != null) 'setupLeadTimeHours': setupLeadTimeHours,
+      if (strikeTimeHours != null) 'strikeTimeHours': strikeTimeHours,
+      if (spareEquipmentPolicy != null) 'spareEquipmentPolicy': spareEquipmentPolicy,
+      if (baseDayRatePaise != null) 'baseDayRatePaise': baseDayRatePaise,
+      'escrowTermsAccepted': escrowTermsAccepted,
+      if (insurancePolicyNumber != null) 'insurancePolicyNumber': insurancePolicyNumber,
+      if (insuranceCoveragePaise != null) 'insuranceCoveragePaise': insuranceCoveragePaise,
+      if (cancellationPolicy != null) 'cancellationPolicy': cancellationPolicy,
     };
   }
 
@@ -107,6 +236,34 @@ class VendorModel {
     Timestamp? createdAt,
     Timestamp? updatedAt,
     String? gstNumber,
+    String? legalEntityName,
+    String? tradeName,
+    String? entityType,
+    String? panNumber,
+    Map<String, dynamic>? registeredAddress,
+    String? signatoryName,
+    String? signatoryGovtIdUrl,
+    String? opsEmergencyPhone,
+    String? gstinCertificateUrl,
+    String? bankAccountHolder,
+    String? bankName,
+    String? accountNumber,
+    String? ifscCode,
+    String? accountType,
+    String? cancelledChequeUrl,
+    String? payoutStatus,
+    Map<String, dynamic>? equipmentManifest,
+    double? maxPowerDrawKva,
+    int? coreCrewHeadcount,
+    List<String>? transportFleet,
+    double? setupLeadTimeHours,
+    double? strikeTimeHours,
+    String? spareEquipmentPolicy,
+    int? baseDayRatePaise,
+    bool? escrowTermsAccepted,
+    String? insurancePolicyNumber,
+    int? insuranceCoveragePaise,
+    String? cancellationPolicy,
   }) {
     return VendorModel(
       vendorId: vendorId ?? this.vendorId,
@@ -127,11 +284,39 @@ class VendorModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       gstNumber: gstNumber ?? this.gstNumber,
+      legalEntityName: legalEntityName ?? this.legalEntityName,
+      tradeName: tradeName ?? this.tradeName,
+      entityType: entityType ?? this.entityType,
+      panNumber: panNumber ?? this.panNumber,
+      registeredAddress: registeredAddress ?? this.registeredAddress,
+      signatoryName: signatoryName ?? this.signatoryName,
+      signatoryGovtIdUrl: signatoryGovtIdUrl ?? this.signatoryGovtIdUrl,
+      opsEmergencyPhone: opsEmergencyPhone ?? this.opsEmergencyPhone,
+      gstinCertificateUrl: gstinCertificateUrl ?? this.gstinCertificateUrl,
+      bankAccountHolder: bankAccountHolder ?? this.bankAccountHolder,
+      bankName: bankName ?? this.bankName,
+      accountNumber: accountNumber ?? this.accountNumber,
+      ifscCode: ifscCode ?? this.ifscCode,
+      accountType: accountType ?? this.accountType,
+      cancelledChequeUrl: cancelledChequeUrl ?? this.cancelledChequeUrl,
+      payoutStatus: payoutStatus ?? this.payoutStatus,
+      equipmentManifest: equipmentManifest ?? this.equipmentManifest,
+      maxPowerDrawKva: maxPowerDrawKva ?? this.maxPowerDrawKva,
+      coreCrewHeadcount: coreCrewHeadcount ?? this.coreCrewHeadcount,
+      transportFleet: transportFleet ?? this.transportFleet,
+      setupLeadTimeHours: setupLeadTimeHours ?? this.setupLeadTimeHours,
+      strikeTimeHours: strikeTimeHours ?? this.strikeTimeHours,
+      spareEquipmentPolicy: spareEquipmentPolicy ?? this.spareEquipmentPolicy,
+      baseDayRatePaise: baseDayRatePaise ?? this.baseDayRatePaise,
+      escrowTermsAccepted: escrowTermsAccepted ?? this.escrowTermsAccepted,
+      insurancePolicyNumber: insurancePolicyNumber ?? this.insurancePolicyNumber,
+      insuranceCoveragePaise: insuranceCoveragePaise ?? this.insuranceCoveragePaise,
+      cancellationPolicy: cancellationPolicy ?? this.cancellationPolicy,
     );
   }
 
   String get id => vendorId;
   List<String> get mediaGallery => portfolioImages ?? [];
   String? get vendorType => categoryIds.isNotEmpty ? categoryIds.first : null;
-  double? get basePrice => 0.0; // Placeholder for basePrice
+  double? get basePrice => baseDayRatePaise != null ? baseDayRatePaise! / 100.0 : 0.0;
 }

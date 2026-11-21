@@ -7,12 +7,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/config/api_config.dart';
 
 /// Screen that allows an authenticated user to link their WhatsApp number
-/// to their Eventology account.
+/// to their Eventalogy account.
 ///
 /// Flow:
 /// 1. User enters their WhatsApp phone number
 /// 2. App calls POST /api/whatsapp/initiate-link
-/// 3. User is prompted to send a WhatsApp message to the Eventology number
+/// 3. User is prompted to send a WhatsApp message to the Eventalogy number
 ///    (this triggers the webhook to issue the token to the phone)
 /// 4. User enters the 8-character code shown in the WhatsApp message
 /// 5. App calls POST /api/whatsapp/link to complete linking
@@ -106,7 +106,7 @@ class _WhatsAppLinkScreenState extends State<WhatsAppLinkScreen> {
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       if (response.statusCode == 200) {
         setState(() {
-          _success = 'WhatsApp linked successfully! You can now use Eventology on WhatsApp.';
+          _success = 'WhatsApp linked successfully! You can now use Eventalogy on WhatsApp.';
           _isLoading = false;
         });
       } else {
@@ -160,7 +160,7 @@ class _WhatsAppLinkScreenState extends State<WhatsAppLinkScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Plan events via WhatsApp using the same AI Architect.',
+                          'Manage event logistics and receive real-time notifications via WhatsApp.',
                           style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                         ),
                       ],
@@ -257,7 +257,7 @@ class _WhatsAppLinkScreenState extends State<WhatsAppLinkScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '1. Send "Hi" to the Eventology WhatsApp number.\n'
+                '1. Send "Hi" to the Eventalogy WhatsApp number.\n'
                 '2. You will receive a link — click it to complete linking.\n'
                 '3. Or paste the full code from the link below.',
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 13),

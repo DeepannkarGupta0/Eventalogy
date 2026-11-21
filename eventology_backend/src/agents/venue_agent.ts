@@ -32,9 +32,9 @@ export async function venueAgentNode(state: StateType): Promise<Partial<StateTyp
   const req = state.eventRequirements;
   const plan = state.eventPlan;
 
-  const systemPrompt = `You are the Eventology Venue Agent.
+  const systemPrompt = `You are the Eventalogy Venue Agent.
 
-Your job is to find suitable venues for an event by querying the Eventology venue database.
+Your job is to find suitable venues for an event by querying the Eventalogy venue database.
 
 You must:
 1. Use the search_venues tool to find venues matching the event requirements

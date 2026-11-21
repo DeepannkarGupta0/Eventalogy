@@ -43,7 +43,7 @@ export const searchVendorsByServiceTool = tool(
   },
   {
     name: "search_vendors_by_service",
-    description: "Search vendors in Eventology by service category (e.g., Catering, Photography, Decoration) and optionally filter by city.",
+    description: "Search vendors in Eventalogy by service category (e.g., Catering, Photography, Decoration) and optionally filter by city.",
     schema: z.object({
       serviceCategory: z.string().describe("The service category name e.g. Catering, Photography, DJ, Decoration"),
       city: z.string().optional().describe("City to filter vendors by"),

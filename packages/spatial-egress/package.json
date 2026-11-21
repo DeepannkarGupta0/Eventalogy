@@ -1,0 +1,23 @@
+{
+  "name": "@eventology/spatial-egress",
+  "version": "1.0.0",
+  "description": "Deterministic NBC 2016 Part 4 & NFPA 101 Spatial Egress and Life-Safety Mathematical Proof Engine",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "keywords": [
+    "egress",
+    "life-safety",
+    "nbc2016",
+    "nfpa101",
+    "fire-safety",
+    "crowd-flow",
+    "event-production",
+    "architecture"
+  ],
+  "author": "Eventology Engineering & Architecture Team",
+  "license": "MIT"
+}

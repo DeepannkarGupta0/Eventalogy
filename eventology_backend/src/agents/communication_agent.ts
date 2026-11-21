@@ -20,7 +20,7 @@ export async function communicationAgentNode(state: StateType): Promise<Partial<
 
   const venueName = (state.candidateVenues ?? []).find(v => v.venueId === state.selectedVenueId)?.name ?? "Selected venue";
 
-  const systemPrompt = `You are the Eventology Communication Agent.
+  const systemPrompt = `You are the Eventalogy Communication Agent.
 
 Bookings have been created. Your job is to generate and save in-app notifications.
 You do NOT send external emails or SMS - you create notification records in Firestore.

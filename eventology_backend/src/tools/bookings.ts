@@ -2,6 +2,7 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 import { db } from "../config/firebase";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { availabilityService } from "../services/availability_service";
 
 // ─── Create Event ──────────────────────────────────────────────────────────────
 
@@ -80,21 +81,92 @@ export const createEnquiryTool = tool(
 );
 
 // ─── Create Booking ────────────────────────────────────────────────────────────
-// WRITE tool — only called by booking_agent after approval is verified
+// WRITE tool — only called by booking_agent after approval is verified.
+// Atomically verifies vendor availability, creates booking, and reserves capacity.
 
 export const createBookingTool = tool(
   async ({ eventId, customerId, vendorId, serviceId, venueId, amount, bookingDateStr, packageId }) => {
     try {
+      const targetEntityId = vendorId || venueId;
       const ref = db.collection("bookings").doc();
+      const amountPaise = Math.round(amount * 100);
+
+      if (targetEntityId) {
+        return await db.runTransaction(async (transaction) => {
+          // Read Phase: Validate availability & prepare reservation
+          const planned = await availabilityService.prepareReservationInTransaction(transaction, {
+            vendorId: targetEntityId,
+            bookingId: ref.id,
+            eventId,
+            requestedDate: bookingDateStr,
+            startTime: bookingDateStr,
+            durationHours: 4,
+            quantity: 1,
+          });
+
+          // Write Phase: Commit booking, reservation, and audit log
+          const bookingData = {
+            bookingId: ref.id,
+            eventId,
+            customerId,
+            vendorId: vendorId ?? null,
+            serviceId,
+            venueId: venueId ?? null,
+            packageId: packageId ?? null,
+            amount,
+            amountInPaise: amountPaise,
+            status: "confirmed",
+            paymentStatus: "unpaid",
+            bookingDate: Timestamp.fromDate(new Date(bookingDateStr)),
+            reservationId: planned.reservationData.reservationId,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          };
+
+          transaction.set(ref, bookingData);
+
+          if (!planned.isExisting) {
+            transaction.set(planned.resRef, planned.reservationData);
+          }
+
+          const auditRef = db.collection("audit_logs").doc();
+          transaction.set(auditRef, {
+            action: "create_conversational_booking",
+            targetId: ref.id,
+            targetType: "booking",
+            actorId: customerId,
+            timestamp: Timestamp.now(),
+            details: {
+              eventId,
+              vendorId,
+              venueId,
+              serviceId,
+              amount,
+              amountInPaise: amountPaise,
+              reservationId: planned.reservationData.reservationId,
+            },
+          });
+
+          return JSON.stringify({
+            success: true,
+            bookingId: ref.id,
+            reservationId: planned.reservationData.reservationId,
+            status: "confirmed",
+          });
+        });
+      }
+
+      // Fallback for bookings without vendor/venue entity
       await ref.set({
         bookingId: ref.id,
         eventId,
         customerId,
-        vendorId,
+        vendorId: null,
         serviceId,
-        venueId: venueId ?? null,
+        venueId: null,
         packageId: packageId ?? null,
         amount,
+        amountInPaise: amountPaise,
         status: "pending",
         paymentStatus: "unpaid",
         bookingDate: Timestamp.fromDate(new Date(bookingDateStr)),
@@ -102,12 +174,16 @@ export const createBookingTool = tool(
       });
       return JSON.stringify({ success: true, bookingId: ref.id });
     } catch (err: any) {
-      return JSON.stringify({ error: `Create booking failed: ${err.message}` });
+      return JSON.stringify({
+        success: false,
+        error: `Create booking failed: ${err.message}`,
+        conflictReason: err.message,
+      });
     }
   },
   {
     name: "create_booking",
-    description: "Create a booking record in Firestore. ONLY call this after user approval has been verified. Returns the booking ID.",
+    description: "Create an authoritative booking record in Firestore and atomically reserve vendor capacity. ONLY call this after user approval has been verified. Returns the booking ID and reservation details.",
     schema: z.object({
       eventId: z.string().describe("The Firestore event ID"),
       customerId: z.string().describe("The customer (user) ID"),
@@ -127,12 +203,54 @@ export const createBookingTool = tool(
 export const createAllocationTool = tool(
   async ({ eventId, vendorId, venueId, serviceId, assignedBy, startTimeStr, endTimeStr }) => {
     try {
+      const targetEntityId = vendorId || venueId;
       const ref = db.collection("allocations").doc();
+
+      if (targetEntityId) {
+        return await db.runTransaction(async (transaction) => {
+          const planned = await availabilityService.prepareReservationInTransaction(transaction, {
+            vendorId: targetEntityId,
+            allocationId: ref.id,
+            eventId,
+            requestedDate: startTimeStr,
+            startTime: startTimeStr,
+            endTime: endTimeStr,
+            quantity: 1,
+          });
+
+          const allocData = {
+            allocationId: ref.id,
+            eventId,
+            vendorId: vendorId ?? null,
+            venueId: venueId ?? null,
+            serviceId: serviceId ?? null,
+            assignedBy,
+            status: "confirmed",
+            reservationId: planned.reservationData.reservationId,
+            startTime: Timestamp.fromDate(new Date(startTimeStr)),
+            endTime: Timestamp.fromDate(new Date(endTimeStr)),
+            createdAt: FieldValue.serverTimestamp(),
+          };
+
+          transaction.set(ref, allocData);
+
+          if (!planned.isExisting) {
+            transaction.set(planned.resRef, planned.reservationData);
+          }
+
+          return JSON.stringify({
+            success: true,
+            allocationId: ref.id,
+            reservationId: planned.reservationData.reservationId,
+          });
+        });
+      }
+
       await ref.set({
         allocationId: ref.id,
         eventId,
-        vendorId: vendorId ?? null,
-        venueId: venueId ?? null,
+        vendorId: null,
+        venueId: null,
         serviceId: serviceId ?? null,
         assignedBy,
         status: "confirmed",

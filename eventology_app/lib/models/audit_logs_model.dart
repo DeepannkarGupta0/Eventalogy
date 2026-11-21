@@ -23,14 +23,15 @@ class AuditLogModel {
 
   factory AuditLogModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+    final rawDetails = data['metadata'] ?? data['details'];
     return AuditLogModel(
       logId: data['logId'] as String? ?? doc.id,
-      actorId: data['actorId'] as String? ?? '',
-      actorRole: data['actorRole'] as String? ?? '',
+      actorId: (data['actorId'] ?? data['adminId']) as String? ?? '',
+      actorRole: data['actorRole'] as String? ?? (data.containsKey('adminId') ? 'admin' : ''),
       action: data['action'] as String? ?? '',
-      resourceType: data['resourceType'] as String? ?? '',
-      resourceId: data['resourceId'] as String? ?? '',
-      metadata: data['metadata'] != null ? Map<String, dynamic>.from(data['metadata'] as Map) : null,
+      resourceType: (data['resourceType'] ?? data['targetType']) as String? ?? '',
+      resourceId: (data['resourceId'] ?? data['targetId']) as String? ?? '',
+      metadata: rawDetails != null ? Map<String, dynamic>.from(rawDetails as Map) : null,
       timestamp: data['timestamp'] as Timestamp? ?? Timestamp.now(),
     );
   }
