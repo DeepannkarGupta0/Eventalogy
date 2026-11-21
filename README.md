@@ -10,13 +10,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.x-02569B?logo=flutter&logoColor=white" alt="Flutter"/>
+  <img src="https://img.shields.io/badge/Flutter-3.x%20Multiplatform-02569B?logo=flutter&logoColor=white" alt="Flutter"/>
+  <img src="https://img.shields.io/badge/Platform-Web%20%7C%20Android%20%7C%20iOS-success" alt="Platform"/>
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&logoColor=white" alt="TypeScript"/>
   <img src="https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white" alt="Node.js"/>
   <img src="https://img.shields.io/badge/Database-Firestore-FFCA28?logo=firebase&logoColor=black" alt="Firestore"/>
   <img src="https://img.shields.io/badge/Payments-Razorpay%20Escrow-0C2340?logo=razorpay&logoColor=white" alt="Razorpay"/>
-  <img src="https://img.shields.io/badge/Tests-201%20Passing-success" alt="Tests"/>
   <img src="https://img.shields.io/badge/Compliance-NBC%202016%20Certified-orange" alt="NBC 2016"/>
+  <img src="https://img.shields.io/badge/Hosting-Firebase%20%7C%20Vercel-blue" alt="Hosting"/>
 </p>
 
 ---
@@ -34,39 +35,38 @@ Unlike conversational chatbot apps or speculative LLM wrappers, Eventology opera
 
 ---
 
-## 🏗️ Architecture & System Topology
+## 📱🌐 Unified Multiplatform Topology: Mobile App + Web Platform
+
+Eventology is engineered as a **single unified multi-platform codebase** that builds native mobile applications and an enterprise web platform simultaneously without duplicated maintenance:
 
 ```mermaid
 flowchart TB
-    subgraph Frontend["Flutter 3.x Client Applications (Web & Mobile)"]
-        UI_User["Storefront & Customer Discovery\n(Universal Search, Filters, Event Cockpit)"]
-        UI_Vendor["Vendor Studio Portal\n(Live Radar, RFQ Inbox, 60s Bids, Ledger)"]
-        UI_Admin["Executive Command Center\n(KYC Governance, Escrow, Live Ops, Audit)"]
+    subgraph Core["Eventology Unified Flutter Codebase"]
+        State["Business Logic & State (GoRouter, CatalogRepository, EscrowLedger)"]
+        Breakpoints{"Screen Width Check (Breakpoint: 960px)"}
+        State --> Breakpoints
     end
 
-    subgraph Backend["Eventology Node.js / TypeScript Core Engine"]
-        API_Gateway["Express API Gateway & Token Security\n(RBAC, Rate Limiting, OWASP Headers)"]
-        
-        subgraph Engines["Deterministic Engineering Services"]
-            ENG_Spatial["Spatial SAT Solver & Egress Engine\n(NBC 2016 Part 4 Compliance)"]
-            ENG_Vision["OpenCV Metric Blueprint Vectorizer\n(Auto-detects Walls, Doors, Obstacles)"]
-            ENG_Physics["Acoustic Raytracing & Wind Ballast\n(Inverse-Square Attenuation, Structural Ballast)"]
-            ENG_Auction["Reverse-Auction Procurement\n(Multi-factor Deterministic Bidding)"]
-            ENG_Settlement["Double-Entry Escrow Ledger\n(25% Advance • 50% Soundcheck • 25% Strike)"]
-        end
+    subgraph MobileOutput["Native Mobile Application (Android / iOS)"]
+        MobileShell["Mobile Shell Layout\n• Glassmorphic Bottom Navigation Bar\n• Central '+' Floating Action Button\n• Touch-Optimized Carousels & Sheets\n• Native Android APK / iOS IPA"]
     end
 
-    subgraph Integrations["Cloud Infrastructure & Gateways"]
-        DB["Google Cloud Firestore\n(Named 'user-data' Instance, Security Rules)"]
-        RP["Razorpay Live Gateway\n(HMAC-SHA256 Webhooks, Escrow Locks)"]
-        WA["Meta WhatsApp Cloud API\n(Automated B2B Cue Sheet & Booking Dispatch)"]
+    subgraph WebOutput["Enterprise Website & Web Application"]
+        WebShell["Desktop & Tablet Web Layout\n• Pinned Top Glassmorphic WebNavBar\n• Max-Width 1320px Centered Container\n• Multi-Column Auto-Fitting Catalog Grids\n• Enterprise 4-Column WebFooter\n• Clean HTML5 URLs (No '#' Hash)"]
     end
 
-    UI_User & UI_Vendor & UI_Admin <-->|Authenticated JWT / REST| API_Gateway
-    API_Gateway --> Engines
-    Engines <--> DB
-    API_Gateway <--> RP
-    API_Gateway <--> WA
+    Breakpoints -->|< 960px| MobileOutput
+    Breakpoints -->|>= 960px| WebOutput
+
+    subgraph Backend["Eventology TypeScript Core Services"]
+        API["Express API Gateway & Token Security"]
+        Engines["SAT Spatial Solver • OpenCV Vectorizer • Reverse-Auction Matrix • Escrow Ledger"]
+        DB["Cloud Firestore • Razorpay Escrow • WhatsApp Cloud API"]
+        API --> Engines <--> DB
+    end
+
+    MobileOutput <-->|REST / JWT| API
+    WebOutput <-->|REST / JWT| API
 ```
 
 ---
@@ -98,109 +98,104 @@ flowchart TB
 * **Tier 2 (Bank Settlement):** Legal account holder name, bank name, account number, 11-char IFSC, cancelled cheque image.
 * **Tier 3 (Equipment Manifest):** Category specifications (line array wattage, trussing alloy ratings, silent DG kVA, FSSAI licenses).
 * **Tier 4 (Site Operations):** Connected 3-phase load in kVA, crew headcount, transport fleet vehicles, load-in and strike durations.
-* **Tier 5 (Commercial Terms):** Base day rate floor, insurance policy numbers, and milestone escrow acceptance.
+* **Tier 5 (Commercial Policies):** Base day rate in integer Paise, standard/moderate/strict cancellation policies, commercial general liability insurance.
 
 ---
 
-## 📁 Repository Structure
+## 📂 Repository Structure
 
-```text
+```
 Eventology/
-├── eventology_app/              # Flutter 3.x Frontend (Web, Android, iOS)
+├── README.md                          # Platform documentation
+├── firebase.json                      # Firebase Hosting (SPA) & Firestore emulator rules
+├── vercel.json                        # Vercel Edge CDN configuration
+│
+├── eventology_app/                    # Unified Flutter Multiplatform Application
+│   ├── android/                       # Native Android container & Gradle build
+│   ├── ios/                           # Native iOS container & Xcode project
+│   ├── web/                           # Web application assets (index.html, manifest.json)
 │   ├── lib/
-│   │   ├── core/                # Theme, routing, collections, firebase config
+│   │   ├── main.dart                  # App bootstrap with HTML5 usePathUrlStrategy
+│   │   ├── core/
+│   │   │   ├── routing/app_router.dart # Public discovery & role-based route guards
+│   │   │   ├── theme/app_colors.dart  # Obsidian dark mode (#070709) & Gold (#FFD700)
+│   │   │   └── widgets/               # WebNavBar, WebFooter, ResponsiveWebContainer
 │   │   ├── features/
-│   │   │   ├── admin/           # 4 Executive Consoles (KYC, Finance, Live Ops, Security)
-│   │   │   ├── auth/            # Phone OTP, email authentication, role routing
-│   │   │   ├── user/            # Discovery Storefront, 6-tab Production Cockpit
-│   │   │   └── vendor/          # 5-Pillar Studio Portal, Radar, RFQ Inbox, Ledger
-│   │   ├── models/              # Immutable data models (Vendor, Booking, Floorplan, etc.)
-│   │   └── services/            # Firestore repositories, settlement & payment clients
-│   └── test/                    # 148 automated Flutter unit, widget & integration tests
+│   │   │   ├── admin/                 # Executive governance, KYC, and escrow releases
+│   │   │   ├── user/                  # Storefront, Discovery, and Production Studio
+│   │   │   └── vendor/                # Vendor portal, RFQs, Calendar, Settlements
+│   │   └── services/                  # Firestore, Auth, Escrow, and RFQ APIs
+│   └── firestore.rules                # Production security rules
 │
-├── eventology_backend/          # Node.js 22 & TypeScript Core Production Engine
-│   ├── src/
-│   │   ├── api/                 # Express REST endpoints (Admin, RFQ, Payments, Settlements)
-│   │   ├── config/              # Firebase Admin SDK & named database initializers
-│   │   ├── middleware/          # Firebase JWT verification & RBAC guards
-│   │   ├── services/
-│   │   │   ├── ops/             # Stage cue engine & timecode run-of-show
-│   │   │   ├── physics/         # Acoustic attenuation & wind load ballast calculators
-│   │   │   ├── spatial/         # SAT 2D geometric packing & NBC 2016 egress solver
-│   │   │   └── visual/          # OpenCV blueprint analysis service
-│   │   └── tests/               # 53 Jest unit, performance & security test suites
-│   ├── Dockerfile               # Production multi-stage Alpine container
-│   └── package.json
+├── eventology_backend/                # TypeScript / Node.js Engine
+│   └── src/
+│       ├── api/                       # Express routes (Admin, Escrow, RFQ, Operations)
+│       ├── services/                  # Spatial solver, CAD vectorizer, and ledger
+│       └── tests/                     # Jest test suites
 │
-├── packages/                    # Standalone Open-Source Computational Libraries
-│   ├── drawio-floorplan/        # Metric CAD to Draw.io XML serializer
-│   ├── spatial-egress/          # Deterministic NBC 2016 safety & egress engine
-│   └── stage-cue-engine/        # SMPTE timecode run-of-show sequencer
-│
-└── firestore.rules              # Zero-trust production security rules
+└── packages/                          # Standalone open-source packages
+    ├── drawio-floorplan/              # Metric Draw.io / XML floorplan generator
+    ├── spatial-egress/                # NBC 2016 life-safety egress engine
+    └── stage-cue-engine/              # Real-time ROS cue sheet executor
 ```
 
 ---
 
-## 🚀 Quick Start Guide
+## 🚀 Quick Start & Build Guide
 
 ### Prerequisites
 * **Flutter SDK:** `^3.24.0`
 * **Node.js:** `>=20.0.0` (Recommended `v22.x`)
 * **Python:** `>=3.10` (with `opencv-python` and `numpy` for blueprint vectorization)
 
-### 1. Backend Setup
+### 1. Backend Setup & Run
 ```bash
 cd eventology_backend
 npm install
 npm run build
-npm test
+npm run dev
 ```
 
-### 2. Frontend Setup
+### 2. Frontend Local Development
 ```bash
 cd eventology_app
 flutter pub get
-flutter analyze
-flutter test
+
+# Run on Desktop Web (Chrome)
+flutter run -d chrome
+
+# Run on Mobile (Android Emulator / Device)
+flutter run -d android
 ```
 
-### 3. Running Locally
+### 3. Production Multiplatform Builds
 ```bash
-# Terminal 1: Backend API
-cd eventology_backend
-npm run dev
-
-# Terminal 2: Flutter Web App
 cd eventology_app
-flutter run -d chrome
+
+# Build Web Bundle (for Firebase Hosting / Vercel / Cloudflare)
+flutter build web --release
+
+# Build Android Production APK / App Bundle
+flutter build apk --release
+flutter build appbundle --release
+
+# Deploy to Firebase Hosting
+firebase deploy --only hosting
 ```
 
 ---
 
 ## 🧪 Automated Verification & Quality Gates
 
-Every commit is validated against comprehensive test suites:
-
-* **Flutter Frontend:** `flutter test` &rarr; **148 / 148 passing (100%)**
-  * Vendor availability and session isolation
-  * Reverse-auction quotation workflows
-  * Settlements ledger and deduction calculations
-  * Role-based routing guards (`user`, `vendor`, `admin`)
-* **Backend Engine:** `npm test` &rarr; **53 / 53 passing (100%)**
-  * Mathematical SAT geometric collision detection
-  * NBC 2016 egress travel distance proofs
-  * Double-entry escrow ledger balance conservation
-  * Razorpay HMAC-SHA256 signature verification
+* **Flutter Frontend:** `flutter test` &rarr; Verified unit, widget, and role routing tests.
+* **Backend Engine:** `npm test` &rarr; 51 core test suites passing (595 tests).
 * **Static Analysis:**
-  * `dart analyze` &rarr; **0 errors, 0 warnings**
-  * `npx tsc --noEmit` &rarr; **0 compilation errors**
+  * `dart analyze` &rarr; Clean (0 errors).
+  * `npx tsc --noEmit` &rarr; Clean (0 compilation errors).
 
 ---
 
-## 🔐 Production Secrets & Deployment
-
-When deploying to live production, configure the following environment variables:
+## 🔐 Production Secrets & Environment Variables
 
 | Key | Provider | Scope |
 | :--- | :--- | :--- |
