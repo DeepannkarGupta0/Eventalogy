@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 
 import '../shell/user_shell_screen.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/responsive_web_container.dart';
+import '../../../core/widgets/web_footer.dart';
 import '../../../services/firestore/catalog_repository.dart';
 import '../../../models/vendor_model.dart';
 import '../../../models/venue_model.dart';
@@ -24,6 +26,9 @@ class _UserHomeViewState extends State<UserHomeView> {
   String _guestCount = '250+';
   String _selectedCategoryFilter = 'All';
 
+  // Scale Estimator state
+  double _calculatorGuests = 350;
+
   final List<String> _categoryFilters = [
     'All',
     'Heritage Palaces',
@@ -36,185 +41,473 @@ class _UserHomeViewState extends State<UserHomeView> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 960;
+
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'LOCATION',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: AppColors.textSecondary,
-                letterSpacing: 1.2,
-                fontSize: 10,
-              ),
-            ),
-            const SizedBox(height: 2),
-            InkWell(
-              onTap: () => _showCityPicker(context),
-              borderRadius: BorderRadius.circular(8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+      extendBodyBehindAppBar: !isDesktop,
+      appBar: isDesktop
+          ? null
+          : AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.location_on,
-                    color: AppColors.primary,
-                    size: 14,
-                  ),
-                  const SizedBox(width: 4),
                   Text(
-                    '$_selectedCity, India',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    'LOCATION',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: AppColors.textSecondary,
+                      letterSpacing: 1.2,
+                      fontSize: 10,
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: AppColors.textSecondary,
-                    size: 16,
+                  const SizedBox(height: 2),
+                  InkWell(
+                    onTap: () => _showCityPicker(context),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.location_on,
+                          color: AppColors.primary,
+                          size: 14,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '$_selectedCity, India',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          Icons.keyboard_arrow_down,
+                          color: AppColors.textSecondary,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                _buildAppBarActionIcon(Icons.search, () => context.push('/venues')),
+                const SizedBox(width: 8),
+                _buildAppBarActionIcon(Icons.notifications_none, () => _showNotifications(context)),
+                const SizedBox(width: 16),
+              ],
+            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF070709),
+          image: DecorationImage(
+            image: NetworkImage('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1600&auto=format&fit=crop'),
+            fit: BoxFit.cover,
+            colorFilter: ColorFilter.mode(Color(0xF5070709), BlendMode.darken),
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          top: !isDesktop,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              0,
+              isDesktop ? 32.0 : 16.0,
+              0,
+              isDesktop ? 0 : 100.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Web Content Wrapper ──────────────────────────────
+                ResponsiveWebContainer(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Desktop Hero Section
+                      if (isDesktop) ...[
+                        _buildDesktopHeroHeader(),
+                        const SizedBox(height: 32),
+                      ],
+
+                      // Universal Search Bar
+                      _buildUniversalSearchBar(context),
+                      const SizedBox(height: 16),
+
+                      // Category Filter Pills
+                      _buildCategoryFilterRow(),
+                      const SizedBox(height: 32),
+
+                      // Deep-Tech Engineering Primitives Showcase
+                      if (isDesktop) ...[
+                        _buildDeepTechShowcase(context),
+                        const SizedBox(height: 48),
+                      ],
+
+                      // Production Studio Hero Card
+                      _buildStudioHeroCard(context),
+                      const SizedBox(height: 40),
+
+                      // Featured Venues Section Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Featured Venues & Palaces',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'NBC 2016 safety-certified ballrooms, forts and open lawns with metric CAD models.',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: isDesktop ? 13 : 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () => context.push('/venues'),
+                            child: const Row(
+                              children: [
+                                Text(
+                                  'Explore All Venues',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Featured Venues (Responsive Grid or Carousel)
+                      isDesktop
+                          ? _buildDesktopFeaturedVenuesGrid()
+                          : _buildFeaturedVenuesCarousel(),
+                      const SizedBox(height: 40),
+
+                      // Curated Event Formats
+                      const Text(
+                        'Curated Event Formats',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildQuickNavigateSection(context),
+                      const SizedBox(height: 40),
+
+                      // Verified Production Vendors Section Header
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Verified Production Crews',
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '5-Tier KYC validated sound, lighting, trussing, and luxury catering contractors.',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: isDesktop ? 13 : 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () => context.push('/vendors'),
+                            child: const Row(
+                              children: [
+                                Text(
+                                  'Explore All Crews',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Verified Production Vendors (Responsive Grid or Column)
+                      isDesktop
+                          ? _buildDesktopVendorsGrid()
+                          : _buildMobileVendorsColumn(),
+                      const SizedBox(height: 48),
+
+                      // Interactive Event Scale & Safety Estimator
+                      _buildScaleEstimatorWidget(context, isDesktop),
+                      const SizedBox(height: 48),
+                    ],
+                  ),
+                ),
+
+                // Web Footer
+                if (isDesktop) const WebFooter(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Desktop Hero Header ──────────────────────────────────────────────
+  Widget _buildDesktopHeroHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0x14FFD700),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0x33FFD700)),
+              ),
+              child: const Text(
+                'FLAGSHIP ENTERPRISE EVENT PLATFORM',
+                style: TextStyle(
+                  color: Color(0xFFFFD700),
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: const Color(0x1410B981),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: const Color(0x3310B981)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.shield_outlined, color: Color(0xFF10B981), size: 13),
+                  SizedBox(width: 4),
+                  Text(
+                    'NBC 2016 COMPLIANT',
+                    style: TextStyle(
+                      color: Color(0xFF10B981),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ],
               ),
             ),
           ],
         ),
-        actions: [
-          _buildAppBarActionIcon(Icons.search, () => context.push('/venues')),
-          const SizedBox(width: 8),
-          _buildAppBarActionIcon(Icons.notifications_none, () => _showNotifications(context)),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF0D0D0F),
-          image: DecorationImage(
-            image: NetworkImage('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1000&auto=format&fit=crop'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(Colors.black87, BlendMode.darken),
+        const SizedBox(height: 20),
+        const Text(
+          'The Deterministic Event Production\n& Engineering Platform',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 44,
+            fontWeight: FontWeight.w900,
+            height: 1.12,
+            letterSpacing: -1.2,
           ),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 100.0),
-            child: Column(
+        const SizedBox(height: 14),
+        const Text(
+          'Institutional event architecture for high-stakes corporate galas, stadium concerts, and luxury weddings.\nEngineered with mathematical spatial solvers, NBC 2016 life safety proofs, and 25/50/25 milestone escrow.',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 16,
+            height: 1.6,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Deep-Tech Engineering Primitives Showcase ────────────────────────
+  Widget _buildDeepTechShowcase(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Core Engineering Primitives',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Zero conversational AI theater or speculative guesswork. Built strictly on proven mathematical and spatial algorithms.',
+          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          children: [
+            Expanded(
+              child: _buildTechCard(
+                icon: Icons.architecture_rounded,
+                badge: 'OPENCV ENGINE',
+                title: 'Blueprint Vectorizer',
+                description: 'Transforms architectural 2D blueprint scans into millimeter-accurate Draw.io / CAD layers with wall & door detection.',
+                onTap: () => _showBlueprintScanDialog(context),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTechCard(
+                icon: Icons.local_fire_department_rounded,
+                badge: 'NBC 2016 PART 4',
+                title: 'Life Safety Proofs',
+                description: 'Verifies 30m maximum egress travel envelopes and 50 persons/unit width exit capacities to mathematically eliminate crush risk.',
+                onTap: () => context.push('/venues'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTechCard(
+                icon: Icons.gavel_rounded,
+                badge: '60s BLIND RFQ',
+                title: 'Reverse-Auction Matrix',
+                description: 'Automated reverse-auction matching. Vetted audio, trussing, and staging crews submit confidential line-item bids.',
+                onTap: () => context.push('/vendors'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildTechCard(
+                icon: Icons.account_balance_wallet_rounded,
+                badge: 'ESCROW LEDGER',
+                title: '25/50/25 Payouts',
+                description: 'Double-entry escrow protection: 25% Advance on contract, 50% on loading dock QR signoff, 25% on final event strike.',
+                onTap: () => context.push('/venues'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTechCard({
+    required IconData icon,
+    required String badge,
+    required String title,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        height: 210,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF10131D),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0x1FFFFFFF)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── 1. Airbnb-Style Universal Search Bar ─────────────────
-                _buildUniversalSearchBar(context),
-                const SizedBox(height: 16),
-
-                // ── 2. Category Filter Pills ─────────────────────────────
-                _buildCategoryFilterRow(),
-                const SizedBox(height: 24),
-
-                // ── 3. Production Studio Cockpit Card ─────────────────────
-                _buildStudioHeroCard(context),
-                const SizedBox(height: 32),
-
-                // ── 4. Featured Venues Showcase ──────────────────────────
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Featured Venues & Palaces',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                    Icon(icon, color: AppColors.primary, size: 24),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                      decoration: BoxDecoration(
+                        color: const Color(0x14FFD700),
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ),
-                    TextButton(
-                      onPressed: () => context.push('/venues'),
-                      child: const Text(
-                        'View All',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
+                      child: Text(
+                        badge,
+                        style: const TextStyle(
+                          color: Color(0xFFFFD700),
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _buildFeaturedVenuesCarousel(),
-                const SizedBox(height: 32),
-
-                // ── 5. Curated Experience Categories ─────────────────────
-                const Text(
-                  'Curated Event Formats',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                const SizedBox(height: 14),
+                Text(
+                  title,
+                  style: const TextStyle(
                     color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
-                _buildQuickNavigateSection(context),
-                const SizedBox(height: 32),
-
-                // ── 6. Trending Production Vendors ────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Verified Production Crews',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => UserShellScreen.of(context).changeTab(1),
-                      child: const Text(
-                        'View All',
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                StreamBuilder<List<VendorModel>>(
-                  stream: CatalogRepository.streamFeaturedVendors(limit: 3),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-                    if (snapshot.hasError) {
-                      return const Center(
-                        child: Text(
-                          'Error loading vendors',
-                          style: TextStyle(color: AppColors.error),
-                        ),
-                      );
-                    }
-                    final vendors = snapshot.data ?? [];
-                    if (vendors.isEmpty) {
-                      return _buildEmptyState(
-                        'No production vendors found',
-                        Icons.storefront,
-                      );
-                    }
-                    return Column(
-                      children: vendors
-                          .map((v) => _buildVendorCard(context, v))
-                          .toList(),
-                    );
-                  },
+                const SizedBox(height: 6),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 11.5,
+                    height: 1.45,
+                  ),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-          ),
+            Row(
+              children: [
+                Text(
+                  'Explore Specs',
+                  style: TextStyle(
+                    color: AppColors.primary.withOpacity(0.9),
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.arrow_forward_rounded, color: AppColors.primary.withOpacity(0.9), size: 12),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -245,29 +538,37 @@ class _UserHomeViewState extends State<UserHomeView> {
               onTap: () => _showSearchFilterDialog(context),
               borderRadius: BorderRadius.circular(14),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
                   children: [
-                    Text(
-                      '$_selectedEventType • $_selectedCity',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                    const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$_selectedEventType in $_selectedCity, India',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '${dateFormat.format(_selectedDate)} • $_guestCount guests • Verified Specs & Escrow',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${dateFormat.format(_selectedDate)} • $_guestCount guests',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 11,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -275,24 +576,27 @@ class _UserHomeViewState extends State<UserHomeView> {
             ),
           ),
           Container(
-            height: 36,
+            height: 38,
             width: 1,
             color: Colors.white.withValues(alpha: 0.1),
           ),
-          const SizedBox(width: 6),
-          IconButton(
+          const SizedBox(width: 8),
+          ElevatedButton(
             onPressed: () => context.push('/venues'),
-            icon: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.search_rounded,
-                color: Colors.black,
-                size: 18,
-              ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              elevation: 0,
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.search, size: 18),
+                SizedBox(width: 8),
+                Text('Search Catalog', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
             ),
           ),
         ],
@@ -303,11 +607,11 @@ class _UserHomeViewState extends State<UserHomeView> {
   // ── Category Filter Pills ───────────────────────────────────────────
   Widget _buildCategoryFilterRow() {
     return SizedBox(
-      height: 38,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _categoryFilters.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        separatorBuilder: (context, index) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final filter = _categoryFilters[index];
           final isSelected = filter == _selectedCategoryFilter;
@@ -321,11 +625,11 @@ class _UserHomeViewState extends State<UserHomeView> {
             borderRadius: BorderRadius.circular(20),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.primary
-                    : const Color(0xFF161B26),
+                    : const Color(0xFF141722),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
@@ -339,7 +643,7 @@ class _UserHomeViewState extends State<UserHomeView> {
                   style: TextStyle(
                     color: isSelected ? Colors.black : Colors.white70,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    fontSize: 12,
+                    fontSize: 12.5,
                   ),
                 ),
               ),
@@ -350,7 +654,42 @@ class _UserHomeViewState extends State<UserHomeView> {
     );
   }
 
-  // ── Featured Venues Carousel ────────────────────────────────────────
+  // ── Desktop Featured Venues Grid ─────────────────────────────────────
+  Widget _buildDesktopFeaturedVenuesGrid() {
+    return StreamBuilder<List<VenueModel>>(
+      stream: CatalogRepository.streamFeaturedVenues(limit: 3),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final venues = snapshot.data ?? [];
+        if (venues.isEmpty) {
+          return Row(
+            children: [
+              Expanded(child: _buildVenueCardPlaceholder()),
+              const SizedBox(width: 20),
+              Expanded(child: _buildVenueCardPlaceholder()),
+              const SizedBox(width: 20),
+              Expanded(child: _buildVenueCardPlaceholder()),
+            ],
+          );
+        }
+
+        return Row(
+          children: venues.map((v) {
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: _buildVenueCard(context, v),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  // ── Mobile Featured Venues Carousel ──────────────────────────────────
   Widget _buildFeaturedVenuesCarousel() {
     return SizedBox(
       height: 230,
@@ -388,7 +727,7 @@ class _UserHomeViewState extends State<UserHomeView> {
       onTap: () => context.push('/venues/${venue.venueId}'),
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        width: 250,
+        height: 230,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
@@ -405,11 +744,11 @@ class _UserHomeViewState extends State<UserHomeView> {
               end: Alignment.bottomCenter,
               colors: [
                 Colors.black.withValues(alpha: 0.2),
-                Colors.black.withValues(alpha: 0.85),
+                Colors.black.withValues(alpha: 0.88),
               ],
             ),
           ),
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -429,7 +768,7 @@ class _UserHomeViewState extends State<UserHomeView> {
                         Icon(Icons.verified, color: Colors.white, size: 10),
                         SizedBox(width: 4),
                         Text(
-                          'VERIFIED',
+                          'NBC VERIFIED',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 9,
@@ -525,19 +864,65 @@ class _UserHomeViewState extends State<UserHomeView> {
     );
   }
 
+  // ── Desktop Vendors Grid ─────────────────────────────────────────────
+  Widget _buildDesktopVendorsGrid() {
+    return StreamBuilder<List<VendorModel>>(
+      stream: CatalogRepository.streamFeaturedVendors(limit: 3),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final vendors = snapshot.data ?? [];
+        if (vendors.isEmpty) {
+          return _buildEmptyState('No production vendors found', Icons.storefront);
+        }
+
+        return Row(
+          children: vendors.map((v) {
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: _buildVendorCard(context, v),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  // ── Mobile Vendors Column ────────────────────────────────────────────
+  Widget _buildMobileVendorsColumn() {
+    return StreamBuilder<List<VendorModel>>(
+      stream: CatalogRepository.streamFeaturedVendors(limit: 3),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        final vendors = snapshot.data ?? [];
+        if (vendors.isEmpty) {
+          return _buildEmptyState('No production vendors found', Icons.storefront);
+        }
+        return Column(
+          children: vendors.map((v) => _buildVendorCard(context, v)).toList(),
+        );
+      },
+    );
+  }
+
   // ── Production Studio Hero Card ─────────────────────────────────────
   Widget _buildStudioHeroCard(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 32),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            const Color(0xFF142421),
-            AppColors.surface,
+            Color(0xFF142421),
+            Color(0xFF10131D),
           ],
         ),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
@@ -553,7 +938,7 @@ class _UserHomeViewState extends State<UserHomeView> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(20),
@@ -566,12 +951,12 @@ class _UserHomeViewState extends State<UserHomeView> {
                   radius: 3,
                   backgroundColor: AppColors.primary,
                 ),
-                SizedBox(width: 6),
+                SizedBox(width: 8),
                 Text(
                   'EVENT PRODUCTION STUDIO',
                   style: TextStyle(
                     color: AppColors.primary,
-                    fontSize: 10,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
                   ),
@@ -585,7 +970,7 @@ class _UserHomeViewState extends State<UserHomeView> {
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 26,
+              fontSize: 30,
               fontWeight: FontWeight.w900,
               height: 1.15,
               letterSpacing: -0.5,
@@ -593,57 +978,32 @@ class _UserHomeViewState extends State<UserHomeView> {
           ),
           const SizedBox(height: 12),
           const Text(
-            'Metric CAD blueprints, acoustic ray-tracing, NBC life-safety compliance, and multi-vendor procurement.',
+            'Metric CAD blueprints, acoustic ray-tracing, NBC life-safety compliance, and multi-vendor reverse auctions.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.textSecondary,
-              fontSize: 12,
+              fontSize: 13,
               height: 1.5,
             ),
           ),
           const SizedBox(height: 24),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  blurRadius: 20,
-                  spreadRadius: 1,
-                ),
-              ],
+          ElevatedButton.icon(
+            onPressed: () => CreateEventSheet.show(context),
+            icon: const Icon(Icons.rocket_launch_rounded, color: Colors.black, size: 18),
+            label: const Text(
+              '+ Launch Event Studio',
+              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 14),
             ),
-            child: ElevatedButton.icon(
-              onPressed: () => CreateEventSheet.show(context),
-              icon: const Icon(
-                Icons.rocket_launch_rounded,
-                color: Colors.black,
-                size: 18,
-              ),
-              label: const Text(
-                '+ Create Event Studio',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 26,
-                  vertical: 14,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                elevation: 0,
-              ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              elevation: 0,
             ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 20),
           Wrap(
-            spacing: 10,
+            spacing: 12,
             runSpacing: 10,
             alignment: WrapAlignment.center,
             children: [
@@ -679,7 +1039,7 @@ class _UserHomeViewState extends State<UserHomeView> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(16),
@@ -694,7 +1054,7 @@ class _UserHomeViewState extends State<UserHomeView> {
               label,
               style: const TextStyle(
                 color: Colors.white70,
-                fontSize: 11,
+                fontSize: 11.5,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -752,11 +1112,174 @@ class _UserHomeViewState extends State<UserHomeView> {
     );
   }
 
+  // ── Scale & Safety Estimator Widget ──────────────────────────────────
+  Widget _buildScaleEstimatorWidget(BuildContext context, bool isDesktop) {
+    final guests = _calculatorGuests.round();
+    // NBC 2016 Part 4: 1.5 sq.m per occupant in banquet/assembly
+    final reqSqMeters = (guests * 1.5).round();
+    final reqSqFeet = (reqSqMeters * 10.764).round();
+    // Exit door units: 1 unit width (0.5m) per 50 occupants
+    final exitUnits = (guests / 50.0).ceil();
+    final minExitWidthMeters = (exitUnits * 0.5).toStringAsFixed(1);
+    // Audio estimate: ~10W RMS per guest for high fidelity
+    final audioKW = (guests * 0.015).toStringAsFixed(1);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(isDesktop ? 36 : 24),
+      decoration: BoxDecoration(
+        color: const Color(0xFF10131E),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0x1FFFFFFF)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                ),
+                child: const Text(
+                  'REAL-TIME LOGISTICS ESTIMATOR',
+                  style: TextStyle(
+                    color: AppColors.primary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Instant Scale & NBC 2016 Fire Safety Proofs',
+            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Slide guest count to calculate required floor area, aggregate exit widths, and audio rig wattage.',
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          ),
+          const SizedBox(height: 24),
+
+          // Slider
+          Row(
+            children: [
+              Text(
+                '$guests Guests',
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Expanded(
+                child: Slider(
+                  value: _calculatorGuests,
+                  min: 50,
+                  max: 2000,
+                  divisions: 39,
+                  activeColor: AppColors.primary,
+                  inactiveColor: const Color(0xFF232A3B),
+                  onChanged: (val) {
+                    setState(() => _calculatorGuests = val);
+                  },
+                ),
+              ),
+              const Text(
+                '2,000 max',
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Metrics row
+          isDesktop
+              ? Row(
+                  children: [
+                    Expanded(child: _buildMetricTile('FLOOR AREA REQUIRED', '$reqSqFeet sq.ft ($reqSqMeters m²)', 'NBC 2016 Standard (1.5 m²/p)', Icons.space_dashboard)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildMetricTile('AGGREGATE EXIT WIDTH', '$minExitWidthMeters meters', '$exitUnits standard exit door units', Icons.door_front_door)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildMetricTile('PA SOUND POWER', '$audioKW kW RMS Rig', 'Linear acoustic coverage', Icons.speaker)),
+                    const SizedBox(width: 16),
+                    Expanded(child: _buildMetricTile('MILESTONE ESCROW', '25% • 50% • 25%', 'Double-entry lock mechanism', Icons.lock_outline)),
+                  ],
+                )
+              : Column(
+                  children: [
+                    _buildMetricTile('FLOOR AREA REQUIRED', '$reqSqFeet sq.ft ($reqSqMeters m²)', 'NBC 2016 Standard (1.5 m²/p)', Icons.space_dashboard),
+                    const SizedBox(height: 12),
+                    _buildMetricTile('AGGREGATE EXIT WIDTH', '$minExitWidthMeters meters', '$exitUnits standard exit door units', Icons.door_front_door),
+                    const SizedBox(height: 12),
+                    _buildMetricTile('PA SOUND POWER', '$audioKW kW RMS Rig', 'Linear acoustic coverage', Icons.speaker),
+                    const SizedBox(height: 12),
+                    _buildMetricTile('MILESTONE ESCROW', '25% • 50% • 25%', 'Double-entry lock mechanism', Icons.lock_outline),
+                  ],
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricTile(String label, String value, String sub, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF141724),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x14FFFFFF)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.primary, size: 16),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            sub,
+            style: TextStyle(color: AppColors.textSecondary.withOpacity(0.8), fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildVendorCard(BuildContext context, VendorModel vendor) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: const Color(0xFF141724),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.glassBorder),
       ),
@@ -764,31 +1287,24 @@ class _UserHomeViewState extends State<UserHomeView> {
         onTap: () => context.push('/vendors/${vendor.vendorId}'),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           child: Row(
             children: [
               Container(
-                width: 70,
-                height: 70,
+                width: 72,
+                height: 72,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
                   color: AppColors.surfaceLighter,
-                  image:
-                      vendor.portfolioImages != null &&
-                          vendor.portfolioImages!.isNotEmpty
+                  image: vendor.portfolioImages != null && vendor.portfolioImages!.isNotEmpty
                       ? DecorationImage(
                           image: NetworkImage(vendor.portfolioImages!.first),
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                child:
-                    vendor.portfolioImages == null ||
-                        vendor.portfolioImages!.isEmpty
-                    ? const Icon(
-                        Icons.storefront,
-                        color: AppColors.textSecondary,
-                      )
+                child: vendor.portfolioImages == null || vendor.portfolioImages!.isEmpty
+                    ? const Icon(Icons.storefront, color: AppColors.textSecondary)
                     : null,
               ),
               const SizedBox(width: 16),
@@ -819,9 +1335,11 @@ class _UserHomeViewState extends State<UserHomeView> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        _buildSmallTag('Production'),
+                        _buildSmallTag(vendor.categoryIds.isNotEmpty
+                            ? vendor.categoryIds.first.toUpperCase()
+                            : 'PRODUCTION'),
                         const SizedBox(width: 6),
-                        _buildSmallTag('Verified'),
+                        _buildSmallTag('KYC VERIFIED'),
                       ],
                     ),
                   ],
@@ -860,11 +1378,11 @@ class _UserHomeViewState extends State<UserHomeView> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
-        style: const TextStyle(color: AppColors.textSecondary, fontSize: 10),
+        style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600),
       ),
     );
   }

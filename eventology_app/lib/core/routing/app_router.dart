@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -47,8 +48,8 @@ final appRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: authStateNotifier,
   redirect: (context, state) {
-    // If it's the splash screen, let it be. Splash screen will handle its own routing.
-    if (state.matchedLocation == '/') {
+    // If it's the splash screen or root on mobile, let it be.
+    if (state.matchedLocation == '/' && !kIsWeb) {
       return null;
     }
 
@@ -61,9 +62,21 @@ final appRouter = GoRouter(
     final isGoingToLoginOrSignup =
         state.matchedLocation == '/login' || state.matchedLocation == '/signup';
 
-    // 1. Unauthenticated users must log in
+    // 1. Public Routes that do NOT require authentication
+    final isPublicRoute = isGoingToLoginOrSignup ||
+        state.matchedLocation == '/loading' ||
+        state.matchedLocation == '/' ||
+        state.matchedLocation == '/home' ||
+        state.matchedLocation == '/venues' ||
+        state.matchedLocation.startsWith('/venues/') ||
+        state.matchedLocation == '/vendors' ||
+        state.matchedLocation.startsWith('/vendors/') ||
+        state.matchedLocation == '/vendors_tab' ||
+        state.matchedLocation == '/become-vendor';
+
+    // Unauthenticated visitors: allow public browsing, protect private endpoints
     if (!isLoggedIn) {
-      if (isGoingToLoginOrSignup || state.matchedLocation == '/loading') {
+      if (isPublicRoute) {
         return null;
       }
       return '/login';
@@ -106,7 +119,11 @@ final appRouter = GoRouter(
     return null;
   },
   routes: [
-    GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
+    GoRoute(
+      path: '/',
+      builder: (context, state) =>
+          kIsWeb ? const UserHomeView() : const SplashScreen(),
+    ),
     GoRoute(
       path: '/loading',
       builder: (context, state) => const LoadingScreen(),

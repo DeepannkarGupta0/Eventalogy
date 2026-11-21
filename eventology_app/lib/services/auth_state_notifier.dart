@@ -119,6 +119,15 @@ class AuthStateNotifier extends ChangeNotifier {
     _role = newRole;
     notifyListeners();
   }
+
+  /// Sign out current authenticated user
+  Future<void> signOut() async {
+    await _auth?.signOut();
+    _user = null;
+    _role = 'unauthorized';
+    _isLoading = false;
+    notifyListeners();
+  }
 }
 
 /// Global singleton instance to feed GoRouter and UI seamlessly

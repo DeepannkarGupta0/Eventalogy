@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/widgets/web_nav_bar.dart';
 import '../events/widgets/create_event_sheet.dart';
 
 class UserShellScreen extends StatefulWidget {
@@ -27,39 +28,49 @@ class _UserShellScreenState extends State<UserShellScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 960;
+
     return Scaffold(
-      extendBody: true, // Allows body to scroll under the translucent navbar
+      extendBody: !isDesktop, // Only extend body under bottom nav on mobile
+      appBar: isDesktop
+          ? WebNavBar(
+              currentIndex: widget.navigationShell.currentIndex,
+              onTabSelected: changeTab,
+            )
+          : null,
       body: widget.navigationShell,
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).padding.bottom + 16,
-              top: 16,
-              left: 24,
-              right: 24,
-            ),
-            decoration: BoxDecoration(
-              color: AppColors.background.withOpacity(0.95),
-              border: const Border(
-                top: BorderSide(color: AppColors.glassBorder, width: 1),
+      bottomNavigationBar: isDesktop
+          ? null
+          : ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).padding.bottom + 16,
+                    top: 16,
+                    left: 24,
+                    right: 24,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.background.withOpacity(0.95),
+                    border: const Border(
+                      top: BorderSide(color: AppColors.glassBorder, width: 1),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildNavItem(0, Icons.explore_rounded, 'Explore'),
+                      _buildNavItem(1, Icons.storefront_rounded, 'Catalog'),
+                      _buildFab(context),
+                      _buildNavItem(2, Icons.layers_rounded, 'My Events'),
+                      _buildNavItem(3, Icons.person_rounded, 'Profile'),
+                    ],
+                  ),
+                ),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildNavItem(0, Icons.explore_rounded, 'Explore'),
-                _buildNavItem(1, Icons.storefront_rounded, 'Catalog'),
-                _buildFab(context),
-                _buildNavItem(2, Icons.layers_rounded, 'My Events'),
-                _buildNavItem(3, Icons.person_rounded, 'Profile'),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -99,24 +110,28 @@ class _UserShellScreenState extends State<UserShellScreen> {
       child: Transform.translate(
         offset: const Offset(0, -20),
         child: Container(
-          width: 54,
-          height: 54,
+          width: 56,
+          height: 56,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: const LinearGradient(
-              begin: Alignment.topRight,
-              end: Alignment.bottomLeft,
-              colors: [AppColors.primary, AppColors.primaryLight],
+              colors: [AppColors.primary, Color(0xFFD4AF37)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.35),
+                color: AppColors.primary.withOpacity(0.3),
                 blurRadius: 16,
-                spreadRadius: 2,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
-          child: const Icon(Icons.add, color: Colors.black, size: 30),
+          child: const Icon(
+            Icons.add,
+            color: Colors.black,
+            size: 28,
+          ),
         ),
       ),
     );

@@ -3,6 +3,31 @@
     "rules": "eventology_app/firestore.rules",
     "indexes": "eventology_app/firestore.indexes.json"
   },
+  "hosting": {
+    "public": "eventology_app/build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|wasm)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=31536000"
+          }
+        ]
+      }
+    ]
+  },
   "emulators": {
     "auth": {
       "port": 9099,
