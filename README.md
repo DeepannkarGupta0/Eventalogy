@@ -127,6 +127,11 @@ Eventology/
 │   │   └── services/                  # Firestore, Auth, Escrow, and RFQ APIs
 │   └── firestore.rules                # Production security rules
 │
+├── eventology_web/                    # Next.js 15 SEO Marketing Website (eventology.in)
+│   ├── src/app/                       # Static SSR pages (Home, Venues, Vendors, Tech, Escrow)
+│   ├── src/components/                # Navbar, Footer, and Interactive ScaleEstimator slider
+│   └── package.json                   # React 19, Next.js 15, Tailwind CSS
+│
 ├── eventology_backend/                # TypeScript / Node.js Engine
 │   └── src/
 │       ├── api/                       # Express routes (Admin, Escrow, RFQ, Operations)
@@ -148,7 +153,15 @@ Eventology/
 * **Node.js:** `>=20.0.0` (Recommended `v22.x`)
 * **Python:** `>=3.10` (with `opencv-python` and `numpy` for blueprint vectorization)
 
-### 1. Backend Setup & Run
+### 1. Next.js 15 Marketing Website (`eventology.in`)
+```bash
+cd eventology_web
+npm install
+npm run dev     # Starts public website at http://localhost:3000
+npm run build   # Generates static pre-rendered HTML for maximum Google SEO
+```
+
+### 2. Backend Setup & Run
 ```bash
 cd eventology_backend
 npm install
@@ -156,7 +169,7 @@ npm run build
 npm run dev
 ```
 
-### 2. Frontend Local Development
+### 3. Flutter App Local Development (`app.eventology.in` / Android / iOS)
 ```bash
 cd eventology_app
 flutter pub get
@@ -168,14 +181,17 @@ flutter run -d chrome
 flutter run -d android
 ```
 
-### 3. Production Multiplatform Builds
+### 4. Production Multiplatform Builds
 ```bash
-cd eventology_app
+# A. Build Next.js 15 Website (for Vercel / Cloudflare Pages)
+cd eventology_web
+npm run build
 
-# Build Web Bundle (for Firebase Hosting / Vercel / Cloudflare)
+# B. Build Flutter Web App Bundle (for app.eventology.in / Firebase Hosting)
+cd ../eventology_app
 flutter build web --release
 
-# Build Android Production APK / App Bundle
+# C. Build Android Production APK / App Bundle
 flutter build apk --release
 flutter build appbundle --release
 
