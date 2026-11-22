@@ -9,29 +9,28 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#070709", // Deepest Midnight (from Flutter AppColors)
-        surface: "#141416", // Elevated Midnight
-        surfaceLight: "#1F1F22", // Interactive surface
-        surfaceHighlight: "#2A2A2D", // Surface highlight
-        glassBorder: "rgba(255, 215, 0, 0.15)",
+        background: "#FAF8F5", // Warm Ivory / Soft Cream Base
+        surface: "#FFFFFF", // Crisp Clean White Card
+        surfaceElevated: "#F5F1E8", // Warm Beige / Champagne Tint
+        surfaceWarm: "#FFFDF9",
+        borderLight: "#E8E2D5",
+        textPrimary: "#18181B", // Deep Charcoal
+        textSecondary: "#52525B", // Readable Slate
+        textMuted: "#71717A",
         brand: {
-          gold: "#FFD700", // Brilliant Gold (AppColors.primary)
-          goldLight: "#FFF0A8", // Champagne Gold (AppColors.primaryLight)
-          goldWarm: "#D4AF37", // Royal Gold
-          goldDark: "#AA820A", // Deep Gold
-          emerald: "#10B981",
-          crimson: "#EF4444",
-          obsidian: "#070709",
-          champagne: "#FDF6E2",
-          cardDark: "#10131E",
+          gold: "#C59B27", // Rich Royal Gold
+          goldDark: "#996515",
+          goldBright: "#D4AF37",
+          goldLight: "#FBF3DE",
+          goldCream: "#FFF9E6",
+          emerald: "#059669",
+          emeraldLight: "#ECFDF5",
         },
       },
       fontFamily: {
         outfit: ["var(--font-outfit)", "Outfit", "system-ui", "sans-serif"],
         playfair: ["var(--font-playfair)", "Playfair Display", "Georgia", "serif"],
         sans: ["var(--font-outfit)", "Outfit", "system-ui", "sans-serif"],
-        syne: ["var(--font-syne)", "Syne", "sans-serif"],
-        mono: ["var(--font-mono)", "JetBrains Mono", "monospace"],
       },
     },
   },
