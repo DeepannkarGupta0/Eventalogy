@@ -52,8 +52,8 @@ export default function StorytellingScrollInner({
     let animId: number
     const handleMouseMove = (e: MouseEvent) => {
       targetTilt.current = {
-        x: (e.clientX / window.innerWidth - 0.5) * 18,
-        y: (e.clientY / window.innerHeight - 0.5) * -18,
+        x: (e.clientX / window.innerWidth - 0.5) * 16,
+        y: (e.clientY / window.innerHeight - 0.5) * -16,
       }
     }
 
@@ -90,8 +90,7 @@ export default function StorytellingScrollInner({
     }
     window.addEventListener('resize', handleResize)
 
-    // Particle count
-    const count = window.innerWidth < 768 ? 50 : 110
+    const count = window.innerWidth < 768 ? 45 : 90
     const particles = Array.from({ length: count }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -120,7 +119,7 @@ export default function StorytellingScrollInner({
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, width, height)
 
-      // Draw floating golden particles
+      // Draw floating golden dust particles
       particles.forEach((p) => {
         p.y -= p.speedY
         p.x += p.speedX
@@ -148,31 +147,53 @@ export default function StorytellingScrollInner({
     }
   }, [])
 
-  // ── PHASE CALCULATIONS ───────────────────────────────────────────────────
-  // Phase 1 (0 to 0.06): Ambient Card Idle
-  // Phase 2 (0.06 to 0.28): Card Snaps Flat & Book Hinge Opens (0 to -165 deg)
-  // Phase 3 (0.28 to 0.55): Camera Dives In & Zooms into the Grand Gateway
-  // Phase 4 (0.55 to 0.72): Gates physically swing wide open & god-rays spill
-  // Phase 5 (0.72 to 0.88): Living Celebration Hall in full glory
-  // Phase 6 (0.88 to 1.00): Scene blends to ivory & 3 Gateway cards slide in
+  // ── PRECISE PHASE MATH ───────────────────────────────────────────────────
+  // Phase 1 (0.00 to 0.22): Card opens like a book.
+  //   - Closed state (p = 0): only front cover is visible, centered.
+  //   - Opens up to 180deg revealing inside spread.
+  // Phase 2 (0.22 to 0.42): Camera zooms in, dreamy golden clouds/mist roll in and envelop screen.
+  //   - Card dissolves completely behind clouds. Card is GONE.
+  // Phase 3 (0.42 to 0.65): Clouds part, revealing the majestic full-screen Grand Palace Gate.
+  //   - Gate doors swing physically open outward in 3D (0 to 85deg).
+  //   - Golden light bursts through.
+  // Phase 4 (0.65 to 0.85): Through the gate into the Living Celebration Hall.
+  //   - Real event being conducted (ballroom banquet, concert beams, chandeliers, toasts).
+  // Phase 5 (0.85 to 1.00): Fades smoothly into warm ivory page & Gateway cards slide up.
 
-  const pOpen = Math.max(0, Math.min(1, (scrollProgress - 0.04) / 0.22))
-  const pZoom = Math.max(0, Math.min(1, (scrollProgress - 0.26) / 0.26))
-  const pGate = Math.max(0, Math.min(1, (scrollProgress - 0.52) / 0.18))
-  const pCeleb = Math.max(0, Math.min(1, (scrollProgress - 0.68) / 0.18))
-  const pDock = Math.max(0, Math.min(1, (scrollProgress - 0.86) / 0.14))
+  const pOpen = Math.max(0, Math.min(1, scrollProgress / 0.20))
+  const pClouds = Math.max(0, Math.min(1, (scrollProgress - 0.20) / 0.18))
+  const pGateEnter = Math.max(0, Math.min(1, (scrollProgress - 0.38) / 0.14))
+  const pGateDoors = Math.max(0, Math.min(1, (scrollProgress - 0.48) / 0.18))
+  const pCeleb = Math.max(0, Math.min(1, (scrollProgress - 0.66) / 0.18))
+  const pDock = Math.max(0, Math.min(1, (scrollProgress - 0.84) / 0.16))
 
-  // Book hinge angle: 0deg closed -> -165deg fully open
-  const bookHingeDeg = -pOpen * 165
+  // Book hinge: 0deg closed -> -180deg fully open
+  const bookHingeDeg = -pOpen * 180
 
-  // Camera zoom factor: 1x -> 6x
-  const zoomScale = 1 + pZoom * 5.2
+  // As the front cover opens to the left, shift the card assembly so the 2-page spread stays centered
+  const cardShiftX = pOpen * 175 // shifts rightward as left cover swings left
 
-  // Gate swing: 0deg closed -> 85deg open
-  const doorOpenDeg = pGate * 85
+  // Zoom during cloud transition
+  const cardZoom = 1 + pClouds * 2.5
+  // Card fades out completely behind clouds
+  const cardOpacity = Math.max(0, 1 - pClouds * 1.5)
 
-  // Idle tilt & bob
-  const isIdle = scrollProgress < 0.05
+  // Cloud density: peaks around p = 0.38 - 0.45
+  let cloudOpacity = 0
+  if (scrollProgress >= 0.18 && scrollProgress < 0.40) {
+    cloudOpacity = (scrollProgress - 0.18) / 0.14
+  } else if (scrollProgress >= 0.40 && scrollProgress < 0.58) {
+    cloudOpacity = 1 - (scrollProgress - 0.40) / 0.18
+  }
+  cloudOpacity = Math.max(0, Math.min(1, cloudOpacity))
+
+  // Gate presence & scale
+  const gateOpacity = Math.max(0, Math.min(1, pGateEnter * 2 - pCeleb * 1.5))
+  const gateScale = 0.85 + pGateDoors * 0.45
+  const gateDoorsOpenDeg = pGateDoors * 85
+
+  // Idle tilt
+  const isIdle = scrollProgress < 0.04
   const idleTiltX = isIdle ? mouseTilt.y : mouseTilt.y * (1 - pOpen)
   const idleTiltY = isIdle ? mouseTilt.x : mouseTilt.x * (1 - pOpen)
 
@@ -181,23 +202,23 @@ export default function StorytellingScrollInner({
       ref={containerRef}
       id="storytelling-container"
       className="relative w-full"
-      style={{ height: '400vh' }}
+      style={{ height: '420vh' }}
     >
-      {/* ── STICKY VIEWPORT (100dvh pinned) ─────────────────────────────────── */}
+      {/* ── STICKY VIEWPORT (100dvh) ────────────────────────────────────────── */}
       <div
         id="storytelling-sticky"
-        className="sticky top-0 w-full h-[100dvh] overflow-hidden bg-gradient-to-b from-[#0C0804] via-[#1A1107] to-[#0A0602] select-none"
+        className="sticky top-0 w-full h-[100dvh] overflow-hidden bg-gradient-to-b from-[#0B0703] via-[#170F06] to-[#080502] select-none"
       >
-        {/* Ambient Particle Canvas */}
+        {/* Ambient Golden Particle Canvas */}
         <canvas
           ref={canvasRef}
           className="absolute inset-0 z-0 pointer-events-none"
           style={{ opacity: 1 - pDock }}
         />
 
-        {/* ── SLEEK FLOATING BRAND HEADER (Integrated at the very top) ────────── */}
+        {/* ── SLEEK FLOATING BRAND HEADER (At top of screen) ─────────────────── */}
         <header
-          className="absolute top-0 inset-x-0 z-50 px-6 sm:px-10 py-5 flex items-center justify-between border-b border-amber-500/10 backdrop-blur-md bg-black/20 transition-opacity duration-300"
+          className="absolute top-0 inset-x-0 z-50 px-6 sm:px-10 py-5 flex items-center justify-between border-b border-amber-500/10 backdrop-blur-md bg-black/25 transition-opacity duration-300"
           style={{ opacity: 1 - pDock }}
         >
           <div className="flex items-center gap-3">
@@ -240,239 +261,398 @@ export default function StorytellingScrollInner({
           </div>
         </header>
 
-        {/* ── 3D SCENE STAGE (Card & Zoom Container) ─────────────────────────── */}
-        <div
-          className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
-          style={{
-            perspective: '1400px',
-            opacity: Math.max(0, 1 - pCeleb * 1.8),
-            transform: `scale(${zoomScale})`,
-            transformOrigin: '75% 50%',
-            transition: 'opacity 0.2s ease',
-          }}
-        >
-          {/* Card Rig Wrapper with 3D Tilt */}
+        {/* ── STAGE 1: THE 2-FOLD LUXURY INVITATION CARD ──────────────────────── */}
+        {cardOpacity > 0.01 && (
           <div
-            className="relative flex items-center justify-center transition-transform duration-75 ease-out"
+            className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none"
             style={{
-              transformStyle: 'preserve-3d',
-              transform: `rotateX(${idleTiltX}deg) rotateY(${idleTiltY}deg)`,
+              perspective: '1600px',
+              opacity: cardOpacity,
+              transform: `scale(${cardZoom})`,
+              transition: 'opacity 0.2s ease',
             }}
           >
-            {/* ── THE 2-FOLD LUXURY INVITATION CARD ──────────────────────────── */}
+            {/* Card Rig: Shifts to keep open spread centered */}
             <div
-              className="relative flex items-center shadow-2xl rounded-2xl"
+              className="relative transition-transform duration-75 ease-out"
               style={{
-                width: 'min(720px, 92vw)',
-                height: 'min(500px, 68vh)',
                 transformStyle: 'preserve-3d',
-                boxShadow:
-                  '0 30px 80px -20px rgba(0,0,0,0.9), 0 0 50px rgba(212,175,55,0.2)',
+                transform: `translateX(${cardShiftX}px) rotateX(${idleTiltX}deg) rotateY(${idleTiltY}deg)`,
               }}
             >
-              {/* LEFT PAGE (Stationary Base Spread) */}
+              {/* Card Container: Exact size of 1 page */}
               <div
-                className="w-1/2 h-full rounded-l-2xl p-6 sm:p-10 flex flex-col justify-between border-y-2 border-l-2 border-r border-[#C59B27]/40 relative overflow-hidden"
+                className="relative rounded-2xl shadow-2xl"
                 style={{
-                  background:
-                    'linear-gradient(135deg, #FBF8F1 0%, #F5EFE0 50%, #EDE4D0 100%)',
+                  width: 'min(360px, 86vw)',
+                  height: 'min(520px, 68vh)',
+                  transformStyle: 'preserve-3d',
+                  boxShadow:
+                    '0 30px 80px -20px rgba(0,0,0,0.9), 0 0 50px rgba(212,175,55,0.25)',
                 }}
               >
-                {/* Gold filigree decorative border */}
-                <div className="absolute inset-3 rounded-lg border border-[#C59B27]/30 pointer-events-none" />
+                {/* 1. RIGHT INNER PAGE (Base page underneath front cover) */}
+                <div
+                  className="absolute inset-0 rounded-2xl p-6 sm:p-8 flex flex-col justify-between border-2 border-[#C59B27]/40 shadow-inner overflow-hidden"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, #1A1107 0%, #291B0C 50%, #150D05 100%)',
+                  }}
+                >
+                  <div className="absolute inset-3 rounded-xl border border-[#C59B27]/30 pointer-events-none" />
 
-                <div className="relative z-10 text-center space-y-3">
-                  <span className="text-[11px] sm:text-xs font-serif tracking-[0.25em] text-[#B8860B] uppercase">
-                    ✦ Together with Honour ✦
-                  </span>
-                  <h3 className="font-serif text-xl sm:text-3xl font-semibold text-[#1F170E] leading-tight">
-                    You Are Cordially Invited
-                  </h3>
-                  <div className="text-[#C59B27] text-xs">❖ &bull; ❖ &bull; ❖</div>
-                  <p className="font-outfit text-xs sm:text-sm text-[#4E3D2A] leading-relaxed max-w-xs mx-auto">
-                    To enter a sanctuary where bespoke celebrations transcend into
-                    timeless legends.
-                  </p>
-                </div>
-
-                <div className="relative z-10 text-center space-y-2 border-t border-[#C59B27]/20 pt-4">
-                  <p className="text-[10px] sm:text-xs font-semibold tracking-widest text-[#9C782F] uppercase">
-                    Weddings &bull; Galas &bull; Concerts &bull; Summits
-                  </p>
-                  <p className="text-[10px] text-[#7A6348] italic font-serif">
-                    Eventalogy International Directorate
-                  </p>
-                </div>
-              </div>
-
-              {/* RIGHT PAGE / GATEWAY PORTAL (Revealed when open) */}
-              <div
-                className="w-1/2 h-full rounded-r-2xl p-4 sm:p-6 flex flex-col items-center justify-center border-y-2 border-r-2 border-l border-[#C59B27]/40 relative overflow-hidden"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #1C1208 0%, #2E1D0D 50%, #150D05 100%)',
-                }}
-              >
-                {/* ── THE GRAND PALACE GATEWAY (Inside Right Page) ───────────── */}
-                <div className="relative w-full h-full flex flex-col items-center justify-between py-2">
-                  {/* Glowing Palace Lanterns */}
-                  <div className="w-full flex items-center justify-between px-4">
-                    <div className="w-6 h-6 rounded-full bg-amber-400 shadow-[0_0_20px_6px_rgba(255,200,80,0.9)] animate-pulse" />
-                    <span className="text-[10px] sm:text-xs tracking-[0.2em] font-serif text-amber-200/90 uppercase font-bold">
-                      The Grand Portal
-                    </span>
-                    <div className="w-6 h-6 rounded-full bg-amber-400 shadow-[0_0_20px_6px_rgba(255,200,80,0.9)] animate-pulse" />
+                  {/* Top Corner Ornaments */}
+                  <div className="relative z-10 flex justify-between text-amber-300 text-xs font-serif">
+                    <span>❖</span>
+                    <span>❖</span>
                   </div>
 
-                  {/* Grand Arch Frame with 3D Swinging Doors */}
+                  {/* Illustrated Gateway Emblem on Right Page */}
+                  <div className="relative z-10 text-center space-y-4">
+                    <div className="w-24 h-24 mx-auto rounded-t-full border-2 border-[#D4AF37] flex flex-col items-center justify-center shadow-[0_0_25px_rgba(212,175,55,0.3)] bg-gradient-to-b from-[#3D2812] to-[#1C1208] p-2">
+                      <div className="w-4 h-4 rounded-full bg-amber-400 shadow-[0_0_12px_rgba(255,200,80,0.8)] animate-pulse" />
+                      <div className="w-full h-8 border-t-2 border-dashed border-amber-300/60 mt-2" />
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] tracking-[0.25em] font-serif text-[#C59B27] uppercase font-bold">
+                        The Grand Gateway
+                      </span>
+                      <h4 className="font-serif text-lg sm:text-xl font-bold text-white mt-1">
+                        Portal of Splendor
+                      </h4>
+                    </div>
+
+                    <p className="font-outfit text-xs text-amber-200/80 leading-relaxed max-w-xs mx-auto">
+                      Step through the royal gates into an evening of curated
+                      grandeur and timeless celebration.
+                    </p>
+
+                    <div className="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/30 text-[10px] text-amber-300 uppercase tracking-widest font-semibold">
+                      Scroll to step inside &darr;
+                    </div>
+                  </div>
+
+                  {/* Bottom Fleurons */}
+                  <div className="relative z-10 flex justify-between text-amber-300 text-xs font-serif">
+                    <span>❖</span>
+                    <span>❖</span>
+                  </div>
+                </div>
+
+                {/* 2. THE BOOK-FOLD COVER (Flips -180deg to the Left) */}
+                <div
+                  className="absolute inset-0 rounded-2xl transition-transform ease-out"
+                  style={{
+                    transformOrigin: 'left center',
+                    transformStyle: 'preserve-3d',
+                    transform: `rotateY(${bookHingeDeg}deg)`,
+                  }}
+                >
+                  {/* FRONT FACE OF COVER (Seen when closed) */}
                   <div
-                    className="relative w-4/5 h-3/4 rounded-t-full border-4 border-[#D4AF37] shadow-[0_0_40px_rgba(212,175,55,0.4)] flex overflow-hidden"
+                    className="absolute inset-0 rounded-2xl p-6 sm:p-8 flex flex-col justify-between border-2 border-[#C59B27] shadow-2xl"
                     style={{
-                      perspective: '800px',
                       background:
-                        'radial-gradient(circle at 50% 50%, #4A3319 0%, #170E06 100%)',
+                        'linear-gradient(135deg, #FAF6EE 0%, #F5EFE0 50%, #EDE4D1 100%)',
+                      backfaceVisibility: 'hidden',
                     }}
                   >
-                    {/* Marigold Toran Garland across arch */}
-                    <div className="absolute top-0 inset-x-0 h-6 border-b-2 border-dashed border-amber-300 flex items-center justify-around z-20">
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className="w-3 h-3 rounded-full bg-amber-500 shadow-md"
-                        />
-                      ))}
+                    {/* Double Gold Filigree Border */}
+                    <div className="absolute inset-3 rounded-xl border-2 border-[#D4AF37] pointer-events-none" />
+                    <div className="absolute inset-5 rounded-lg border border-[#D4AF37]/40 pointer-events-none" />
+
+                    {/* Corner Ornaments */}
+                    <div className="relative z-10 flex justify-between text-[#C59B27] text-sm font-serif">
+                      <span>❖</span>
+                      <span>❖</span>
                     </div>
 
-                    {/* Left Gate Door (Swings outward) */}
-                    <div
-                      className="w-1/2 h-full bg-gradient-to-r from-[#2B1B0E] via-[#3D2714] to-[#201409] border-r border-[#D4AF37]/50 flex items-center justify-center transition-transform origin-left z-10"
-                      style={{
-                        transformStyle: 'preserve-3d',
-                        transform: `rotateY(${-doorOpenDeg}deg)`,
-                      }}
-                    >
-                      <div className="w-8 h-8 rounded-full border-2 border-[#D4AF37] flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-[#D4AF37]" />
+                    {/* Center Crest Monogram */}
+                    <div className="relative z-10 text-center space-y-4">
+                      <div className="w-20 h-20 mx-auto rounded-full border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.3)] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFE0]">
+                        <span className="font-serif text-4xl font-bold text-[#B8860B]">
+                          E
+                        </span>
                       </div>
-                    </div>
 
-                    {/* Right Gate Door (Swings outward) */}
-                    <div
-                      className="w-1/2 h-full bg-gradient-to-l from-[#2B1B0E] via-[#3D2714] to-[#201409] border-l border-[#D4AF37]/50 flex items-center justify-center transition-transform origin-right z-10"
-                      style={{
-                        transformStyle: 'preserve-3d',
-                        transform: `rotateY(${doorOpenDeg}deg)`,
-                      }}
-                    >
-                      <div className="w-8 h-8 rounded-full border-2 border-[#D4AF37] flex items-center justify-center">
-                        <div className="w-2 h-2 rounded-full bg-[#D4AF37]" />
+                      <div>
+                        <h2 className="font-outfit text-2xl sm:text-3xl font-black tracking-[0.18em] text-[#1A140B]">
+                          EVENTALOGY
+                        </h2>
+                        <p className="text-[10px] sm:text-xs font-extrabold tracking-[0.3em] text-[#C59B27] uppercase mt-1">
+                          INTERNATIONAL
+                        </p>
                       </div>
+
+                      <div className="text-[#C59B27] text-xs">✦ &bull; ✦ &bull; ✦</div>
+                      <p className="text-[11px] sm:text-xs font-medium tracking-[0.2em] text-[#6B5435] uppercase">
+                        An Invitation to Splendor
+                      </p>
                     </div>
 
-                    {/* Behind the doors: Radiant Celebration Light Burst */}
-                    <div
-                      className="absolute inset-0 flex flex-col items-center justify-center text-center p-4 z-0 transition-opacity duration-300"
-                      style={{ opacity: Math.min(1, pGate * 2) }}
-                    >
-                      <div className="w-24 h-24 rounded-full bg-amber-300 blur-xl opacity-80 animate-pulse" />
-                      <span className="text-white font-serif text-sm font-bold tracking-wider relative z-10 drop-shadow-md">
-                        Step Inside
+                    {/* Bottom Fleurons */}
+                    <div className="relative z-10 flex justify-between text-[#C59B27] text-sm font-serif">
+                      <span>❖</span>
+                      <span>❖</span>
+                    </div>
+                  </div>
+
+                  {/* BACK FACE OF COVER (Becomes the Left Inner Page when open!) */}
+                  <div
+                    className="absolute inset-0 rounded-2xl p-6 sm:p-8 flex flex-col justify-between border-2 border-[#C59B27]/40 shadow-inner"
+                    style={{
+                      background:
+                        'linear-gradient(135deg, #FBF8F1 0%, #F5EFE0 50%, #EDE4D0 100%)',
+                      transform: 'rotateY(180deg)',
+                      backfaceVisibility: 'hidden',
+                    }}
+                  >
+                    <div className="absolute inset-3 rounded-xl border border-[#C59B27]/30 pointer-events-none" />
+
+                    <div className="relative z-10 flex justify-between text-[#C59B27] text-xs font-serif">
+                      <span>❖</span>
+                      <span>❖</span>
+                    </div>
+
+                    <div className="relative z-10 text-center space-y-3">
+                      <span className="text-[10px] sm:text-xs font-serif tracking-[0.25em] text-[#B8860B] uppercase font-bold">
+                        ✦ Together with Honour ✦
                       </span>
+                      <h3 className="font-serif text-xl sm:text-2xl font-semibold text-[#1F170E] leading-tight">
+                        You Are Cordially Invited
+                      </h3>
+                      <div className="text-[#C59B27] text-xs">❖ &bull; ❖ &bull; ❖</div>
+                      <p className="font-outfit text-xs text-[#4E3D2A] leading-relaxed max-w-xs mx-auto">
+                        To enter a realm of bespoke celebrations where moments become
+                        timeless legends.
+                      </p>
+
+                      <div className="border-t border-[#C59B27]/30 pt-3">
+                        <p className="text-[10px] font-bold tracking-widest text-[#9C782F] uppercase">
+                          Weddings &bull; Galas &bull; Concerts &bull; Summits
+                        </p>
+                        <p className="text-[9px] text-[#7A6348] italic font-serif mt-1">
+                          Eventalogy International Directorate
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="relative z-10 flex justify-between text-[#C59B27] text-xs font-serif">
+                      <span>❖</span>
+                      <span>❖</span>
                     </div>
                   </div>
-
-                  {/* Scroll cue */}
-                  <div className="text-center">
-                    <span className="text-[10px] text-amber-300/80 tracking-widest uppercase">
-                      Scroll to enter &darr;
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── THE 3D HINGED COVER (Front Cover that swings open) ─────────── */}
-              <div
-                className="absolute top-0 right-0 w-1/2 h-full rounded-r-2xl p-6 sm:p-10 flex flex-col justify-between border-2 border-[#C59B27] shadow-2xl transition-transform ease-out z-30"
-                style={{
-                  transformOrigin: 'left center',
-                  transformStyle: 'preserve-3d',
-                  transform: `rotateY(${bookHingeDeg}deg)`,
-                  background:
-                    'linear-gradient(135deg, #FAF6EE 0%, #F5EFE0 50%, #EDE4D1 100%)',
-                  backfaceVisibility: 'hidden',
-                }}
-              >
-                {/* Double Gold Filigree Border */}
-                <div className="absolute inset-3 rounded-xl border-2 border-[#D4AF37] pointer-events-none" />
-                <div className="absolute inset-5 rounded-lg border border-[#D4AF37]/40 pointer-events-none" />
-
-                {/* Top Corner Ornaments */}
-                <div className="relative z-10 flex justify-between text-[#C59B27] text-sm font-serif">
-                  <span>❖</span>
-                  <span>❖</span>
-                </div>
-
-                {/* Center Monogram Crest */}
-                <div className="relative z-10 text-center space-y-4">
-                  <div className="w-20 h-20 mx-auto rounded-full border-2 border-[#D4AF37] flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.3)] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFE0]">
-                    <span className="font-serif text-4xl font-bold text-[#B8860B]">
-                      E
-                    </span>
-                  </div>
-
-                  <div>
-                    <h2 className="font-outfit text-2xl sm:text-3xl font-black tracking-[0.18em] text-[#1A140B]">
-                      EVENTALOGY
-                    </h2>
-                    <p className="text-[10px] sm:text-xs font-extrabold tracking-[0.3em] text-[#C59B27] uppercase mt-1">
-                      INTERNATIONAL
-                    </p>
-                  </div>
-
-                  <div className="text-[#C59B27] text-xs">✦ &bull; ✦ &bull; ✦</div>
-                  <p className="text-[11px] sm:text-xs font-medium tracking-[0.2em] text-[#6B5435] uppercase">
-                    An Invitation to Splendor
-                  </p>
-                </div>
-
-                {/* Bottom Fleurons */}
-                <div className="relative z-10 flex justify-between text-[#C59B27] text-sm font-serif">
-                  <span>❖</span>
-                  <span>❖</span>
                 </div>
               </div>
             </div>
           </div>
+        )}
+
+        {/* ── STAGE 2: DREAMY GOLDEN ROLLING CLOUDS / MIST TRANSITION ─────────── */}
+        <div
+          className="absolute inset-0 z-20 pointer-events-none transition-opacity duration-300"
+          style={{ opacity: cloudOpacity }}
+        >
+          {/* Billowing cloud puffs */}
+          <div
+            className="absolute -top-1/4 -left-1/4 w-[150%] h-[150%] blur-3xl opacity-80"
+            style={{
+              background:
+                'radial-gradient(circle at 50% 50%, rgba(245, 210, 120, 0.5) 0%, rgba(180, 120, 30, 0.4) 40%, rgba(20, 10, 0, 0.8) 80%)',
+            }}
+          />
+          <div
+            className="absolute top-1/4 right-0 w-[600px] h-[600px] rounded-full blur-2xl opacity-60"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(255, 235, 170, 0.7) 0%, rgba(212, 175, 55, 0.3) 50%, transparent 100%)',
+            }}
+          />
+          <div
+            className="absolute bottom-0 left-10 w-[700px] h-[500px] rounded-full blur-3xl opacity-70"
+            style={{
+              background:
+                'radial-gradient(circle, rgba(255, 220, 130, 0.6) 0%, rgba(160, 95, 20, 0.4) 50%, transparent 100%)',
+            }}
+          />
         </div>
 
-        {/* ── PHASE 5: THE LIVING CELEBRATION HALL (Emerges through gates) ─────── */}
+        {/* ── STAGE 3: THE MAJESTIC STANDALONE GRAND PALACE GATE ──────────────── */}
+        {gateOpacity > 0.01 && (
+          <div
+            className="absolute inset-0 flex items-center justify-center z-25 pointer-events-none"
+            style={{
+              perspective: '1400px',
+              opacity: gateOpacity,
+              transform: `scale(${gateScale})`,
+              transition: 'opacity 0.2s ease',
+            }}
+          >
+            {/* Imposing Palace Gateway Rig */}
+            <div
+              className="relative flex flex-col items-center justify-center"
+              style={{
+                width: 'min(760px, 94vw)',
+                height: 'min(680px, 85vh)',
+                transformStyle: 'preserve-3d',
+              }}
+            >
+              {/* Palace Scalloped Arch Frame */}
+              <div className="relative w-full h-full flex flex-col items-center">
+                {/* Crown / Royal Finials */}
+                <div className="relative z-20 flex flex-col items-center -mb-2">
+                  <div className="w-12 h-12 rounded-full border-2 border-[#D4AF37] bg-gradient-to-br from-[#D4AF37] to-[#8C6B1F] flex items-center justify-center shadow-[0_0_30px_rgba(212,175,55,0.7)] text-white font-serif font-bold text-lg">
+                    ❖
+                  </div>
+                  <div className="w-1 h-6 bg-gradient-to-b from-[#D4AF37] to-transparent" />
+                </div>
+
+                {/* Main Arch Structure */}
+                <div
+                  className="relative w-full flex-1 rounded-t-[240px] border-8 border-[#D4AF37] shadow-[0_0_80px_rgba(212,175,55,0.35)] flex overflow-hidden"
+                  style={{
+                    background:
+                      'radial-gradient(circle at 50% 40%, #3B2613 0%, #170E05 80%)',
+                    perspective: '1000px',
+                  }}
+                >
+                  {/* Floral Marigold Toran Garland across top arch */}
+                  <div className="absolute top-0 inset-x-0 h-10 border-b-2 border-dashed border-amber-300 flex items-center justify-around z-30">
+                    {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                      <div
+                        key={i}
+                        className="w-5 h-5 rounded-full bg-gradient-to-br from-amber-300 to-amber-600 shadow-[0_0_12px_rgba(255,180,40,0.8)]"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Left Antique Palace Lantern */}
+                  <div className="absolute top-20 left-8 z-30 flex flex-col items-center">
+                    <div className="w-2 h-8 bg-[#8C6B1F]" />
+                    <div className="w-10 h-14 rounded-lg border-2 border-[#D4AF37] bg-amber-400 shadow-[0_0_35px_10px_rgba(255,200,80,0.9)] animate-pulse flex items-center justify-center">
+                      <div className="w-3 h-5 bg-white rounded-full blur-[1px]" />
+                    </div>
+                  </div>
+
+                  {/* Right Antique Palace Lantern */}
+                  <div className="absolute top-20 right-8 z-30 flex flex-col items-center">
+                    <div className="w-2 h-8 bg-[#8C6B1F]" />
+                    <div className="w-10 h-14 rounded-lg border-2 border-[#D4AF37] bg-amber-400 shadow-[0_0_35px_10px_rgba(255,200,80,0.9)] animate-pulse flex items-center justify-center">
+                      <div className="w-3 h-5 bg-white rounded-full blur-[1px]" />
+                    </div>
+                  </div>
+
+                  {/* LEFT PALACE GATE DOOR (Swings outward) */}
+                  <div
+                    className="w-1/2 h-full bg-gradient-to-r from-[#201409] via-[#332010] to-[#1C1207] border-r border-[#D4AF37] flex flex-col justify-around p-8 transition-transform origin-left z-20 shadow-2xl"
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      transform: `rotateY(${-gateDoorsOpenDeg}deg)`,
+                    }}
+                  >
+                    {/* Brass Rivets on Left Door */}
+                    <div className="space-y-8">
+                      {[1, 2, 3].map((r) => (
+                        <div key={r} className="flex justify-around">
+                          <div className="w-4 h-4 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
+                          <div className="w-4 h-4 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Lion Brass Knocker */}
+                    <div className="self-end mr-2 w-14 h-14 rounded-full border-4 border-[#D4AF37] bg-[#422C17] flex items-center justify-center shadow-lg">
+                      <div className="w-4 h-4 rounded-full bg-[#D4AF37]" />
+                    </div>
+                  </div>
+
+                  {/* RIGHT PALACE GATE DOOR (Swings outward) */}
+                  <div
+                    className="w-1/2 h-full bg-gradient-to-l from-[#201409] via-[#332010] to-[#1C1207] border-l border-[#D4AF37] flex flex-col justify-around p-8 transition-transform origin-right z-20 shadow-2xl"
+                    style={{
+                      transformStyle: 'preserve-3d',
+                      transform: `rotateY(${gateDoorsOpenDeg}deg)`,
+                    }}
+                  >
+                    {/* Brass Rivets on Right Door */}
+                    <div className="space-y-8">
+                      {[1, 2, 3].map((r) => (
+                        <div key={r} className="flex justify-around">
+                          <div className="w-4 h-4 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
+                          <div className="w-4 h-4 rounded-full bg-[#D4AF37] shadow-[0_0_8px_rgba(212,175,55,0.8)]" />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Lion Brass Knocker */}
+                    <div className="self-start ml-2 w-14 h-14 rounded-full border-4 border-[#D4AF37] bg-[#422C17] flex items-center justify-center shadow-lg">
+                      <div className="w-4 h-4 rounded-full bg-[#D4AF37]" />
+                    </div>
+                  </div>
+
+                  {/* BEHIND THE GATES: Radiant Golden Burst (Revealed as doors open) */}
+                  <div
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center p-6 transition-opacity duration-300"
+                    style={{ opacity: Math.min(1, pGateDoors * 2) }}
+                  >
+                    {/* Volumetric Light Burst */}
+                    <div className="w-72 h-72 rounded-full bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 blur-3xl opacity-80 animate-pulse" />
+                    <span className="font-serif text-white text-xl sm:text-2xl font-bold tracking-widest relative z-20 drop-shadow-[0_4px_20px_rgba(0,0,0,0.9)]">
+                      Entering The Celebration
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── STAGE 4: THE LIVING CELEBRATION HALL (Real event in progress) ─────── */}
         <div
-          className="absolute inset-0 z-20 pointer-events-none flex flex-col items-center justify-center text-center px-6 transition-opacity duration-500 overflow-hidden"
+          className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center text-center px-6 transition-opacity duration-500 overflow-hidden"
           style={{
             opacity: Math.max(0, Math.min(1, pCeleb * 1.5 - pDock * 1.5)),
-            background:
-              'radial-gradient(circle at 50% 40%, rgba(55, 35, 15, 0.92) 0%, rgba(20, 12, 5, 0.98) 75%, #0A0602 100%)',
           }}
         >
-          {/* Sweeping Concert Spotlight Beams */}
+          {/* High-Definition Luxury Event Backdrop (Real Celebration in progress) */}
           <div
-            className="absolute -top-32 left-1/4 w-40 h-[900px] opacity-35 transform -rotate-12 blur-3xl pointer-events-none"
+            className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700"
             style={{
-              background:
-                'linear-gradient(180deg, rgba(255, 235, 160, 0.8) 0%, rgba(212, 175, 55, 0.2) 60%, transparent 100%)',
-            }}
-          />
-          <div
-            className="absolute -top-32 right-1/4 w-40 h-[900px] opacity-35 transform rotate-12 blur-3xl pointer-events-none"
-            style={{
-              background:
-                'linear-gradient(180deg, rgba(255, 235, 160, 0.8) 0%, rgba(212, 175, 55, 0.2) 60%, transparent 100%)',
+              backgroundImage:
+                'url("https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2000&auto=format&fit=crop")',
+              transform: `scale(${1 + (1 - pCeleb) * 0.1})`,
             }}
           />
 
-          {/* Celebration Hall Content */}
+          {/* Luxury Warm Amber Overlay & Vignette */}
+          <div
+            className="absolute inset-0 z-1"
+            style={{
+              background:
+                'radial-gradient(circle at 50% 45%, rgba(20, 12, 4, 0.72) 0%, rgba(10, 6, 2, 0.92) 80%, #060401 100%)',
+            }}
+          />
+
+          {/* Sweeping Concert Spotlight Beams */}
+          <div
+            className="absolute -top-32 left-1/4 w-44 h-[900px] opacity-40 transform -rotate-12 blur-3xl pointer-events-none z-2"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255, 235, 160, 0.85) 0%, rgba(212, 175, 55, 0.2) 60%, transparent 100%)',
+            }}
+          />
+          <div
+            className="absolute -top-32 right-1/4 w-44 h-[900px] opacity-40 transform rotate-12 blur-3xl pointer-events-none z-2"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(255, 235, 160, 0.85) 0%, rgba(212, 175, 55, 0.2) 60%, transparent 100%)',
+            }}
+          />
+
+          {/* Celebration Hall Content Overlay */}
           <div className="relative z-10 max-w-4xl mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/10 border border-amber-400/30 text-amber-300 text-xs sm:text-sm font-medium tracking-widest uppercase shadow-lg backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs sm:text-sm font-semibold tracking-widest uppercase shadow-xl backdrop-blur-md">
               <Sparkles className="w-4 h-4 text-amber-400" />
               <span>You Have Arrived At The Celebration</span>
             </div>
@@ -481,7 +661,7 @@ export default function StorytellingScrollInner({
               Curating <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-400">Extraordinary</span> Celebrations Worldwide.
             </h1>
 
-            <p className="text-base sm:text-lg text-amber-100/90 leading-relaxed font-light max-w-2xl mx-auto drop-shadow-md">
+            <p className="text-base sm:text-lg text-amber-100/90 leading-relaxed font-light max-w-2xl mx-auto drop-shadow-lg">
               From heritage palaces in Rajasthan and coastal lawns in Goa, to mega concerts and corporate summits —{' '}
               <strong className="text-amber-300 font-semibold">Eventalogy International</strong> is your complete production partner.
             </p>
@@ -497,7 +677,7 @@ export default function StorytellingScrollInner({
               ].map((cat) => (
                 <span
                   key={cat}
-                  className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-white/10 backdrop-blur-md border border-amber-300/30 text-amber-100 shadow-md"
+                  className="px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-black/40 backdrop-blur-md border border-amber-300/40 text-amber-100 shadow-md"
                 >
                   {cat}
                 </span>
@@ -516,14 +696,14 @@ export default function StorytellingScrollInner({
           </div>
         )}
 
-        {/* ── PHASE 6: SMOOTH BACKGROUND TRANSITION TO WARM IVORY ──────────────── */}
+        {/* ── STAGE 5: SMOOTH BACKGROUND TRANSITION TO WARM IVORY ──────────────── */}
         <div
-          className="absolute inset-0 z-30 pointer-events-none transition-opacity duration-300 bg-[#FAF8F5]"
+          className="absolute inset-0 z-35 pointer-events-none transition-opacity duration-300 bg-[#FAF8F5]"
           style={{ opacity: pDock }}
         />
       </div>
 
-      {/* ── PHASE 6 DOCKING: THE 3 GATEWAY HUBS (SLIDES UP SMOOTHLY) ─────────── */}
+      {/* ── STAGE 5 DOCKING: THE 3 GATEWAY HUBS (SLIDES UP SMOOTHLY) ─────────── */}
       <div
         className="relative z-40 -mt-[100dvh] min-h-[100dvh] flex flex-col justify-end pb-16 px-6 lg:px-8 max-w-7xl mx-auto"
         style={{
