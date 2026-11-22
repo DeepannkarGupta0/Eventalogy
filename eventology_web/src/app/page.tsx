@@ -44,73 +44,7 @@ export default function HomePage() {
         onClose={() => setCallbackModalOpen(false)}
       />
 
-      {/* ── 1. HERO SECTION & INTEGRATED BRAND IDENTITY (NO SEPARATE HEADER) ─── */}
-      <section className="relative px-6 lg:px-8 pt-10 pb-16 md:pt-16 md:pb-24 max-w-7xl mx-auto space-y-10">
-        {/* Integrated Brand Identity at Top of Page */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pb-8 border-b border-[#E8E2D5]">
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D4AF37] to-[#B8860B] shadow-sm text-white">
-              <Sparkles className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-outfit text-xl sm:text-2xl font-black tracking-wider text-[#18181B]">
-                  EVENTALOGY
-                </span>
-                <span className="font-outfit text-xs font-extrabold tracking-widest text-[#B8860B] uppercase">
-                  INTERNATIONAL
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                Royal Weddings &bull; Stadium Concerts &bull; Luxury Galas
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Access Badges */}
-          <div className="flex items-center gap-2.5">
-            <a
-              href="https://wa.me/917714009000?text=Hi%20Eventalogy!%20I%20would%20like%20to%20plan%20an%20event."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-100 transition-colors"
-            >
-              <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
-              <span>WhatsApp 24/7</span>
-            </a>
-
-            <button
-              onClick={() => setCallbackModalOpen(true)}
-              className="flex items-center gap-1.5 rounded-full border border-[#D4AF37]/50 bg-[#FFF8E7] px-3.5 py-1.5 text-xs font-bold text-[#B8860B] hover:bg-[#FDF3DE] transition-colors"
-            >
-              <PhoneCall className="h-3.5 w-3.5" />
-              <span>Request Callback</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Hero Title & Subtitle */}
-        <div className="text-center pt-4 max-w-4xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/30 bg-[#FFF8E7] px-4 py-1.5 shadow-sm">
-            <Sparkles className="h-4 w-4 text-[#B8860B]" />
-            <span className="font-outfit text-xs sm:text-sm font-bold tracking-wider text-[#B8860B] uppercase">
-              Premier Global Event Production &bull; Handpicked Venues
-            </span>
-          </div>
-
-          <h1 className="font-outfit text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-[#18181B] leading-[1.08]">
-            Curating <span className="gold-gradient-text">Extraordinary</span> Celebrations Worldwide.
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal max-w-2xl mx-auto">
-            From heritage palaces in Rajasthan and coastal lawns in Goa, to mega concerts and corporate summits —{" "}
-            <span className="text-[#B8860B] font-bold">Eventalogy International</span> is your complete production partner.
-            Enter our web app, chat with our automated bots, or connect directly with our directors.
-          </p>
-        </div>
-      </section>
-
-      {/* ── 3D STORYTELLING SCROLL ANIMATION (CARD → GATEWAY → CELEBRATION → DOCK) ── */}
+      {/* ── 1. THE 3D STORYTELLING SCROLL HERO (THE HERO ELEMENT AT THE VERY TOP) ── */}
       <StorytellingScroll onOpenCallback={() => setCallbackModalOpen(true)} />
 
       {/* ── 2. TRUST STRIP ─────────────────────────────────────────────────── */}
