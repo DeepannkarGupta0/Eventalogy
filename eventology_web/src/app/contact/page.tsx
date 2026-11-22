@@ -24,19 +24,19 @@ export default function ContactPage() {
   return (
     <div className="py-12 md:py-20 px-6 lg:px-8 space-y-12 max-w-5xl mx-auto">
       <div>
-        <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-[#FFD700] hover:underline mb-4">
+        <Link href="/" className="inline-flex items-center gap-2 text-xs font-bold text-[#FFD700] hover:underline mb-4 font-mono">
           <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Back to Eventology Home</span>
+          <span>Back to Eventalogy International Home</span>
         </Link>
-        <div className="flex items-center gap-2 text-xs font-bold text-[#FFD700] uppercase tracking-wider">
+        <div className="flex items-center gap-2 text-xs font-bold text-[#FFD700] uppercase tracking-wider font-mono">
           <Building2 className="h-4 w-4" />
           <span>Corporate & Dispatch Headquarters</span>
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight mt-2">
+        <h1 className="font-syne text-3xl sm:text-5xl font-black text-white tracking-tight mt-2">
           Contact & Enterprise Dispatch
         </h1>
         <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl">
-          Speak with our technical event architects, register your venue inventory, or request an institutional RFP proposal.
+          Speak with our technical event architects at Eventalogy International, register your venue inventory, or request an institutional RFP proposal.
         </p>
       </div>
 
@@ -96,7 +96,7 @@ export default function ContactPage() {
                 </div>
                 <h3 className="text-2xl font-bold text-white">Request Received</h3>
                 <p className="text-sm text-slate-400 max-w-md mx-auto">
-                  An Eventology production director has received your specification and will contact you within 2 operational hours.
+                  An Eventalogy International production director has received your specification and will contact you within 2 operational hours.
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}

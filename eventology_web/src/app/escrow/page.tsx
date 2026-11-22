@@ -212,7 +212,7 @@ export default function EscrowPage() {
         </div>
         <p className="text-sm text-slate-400 leading-relaxed max-w-3xl">
           If a technical failure occurs (e.g. line-array sound failure, missing generator backup), the client can raise a dispute in the Live Cockpit.
-          The milestone payment is automatically frozen in escrow, and an Eventology technical arbitrator reviews the time-stamped cue logs within 2 hours.
+          The milestone payment is automatically frozen in escrow, and an Eventalogy International technical arbitrator reviews the time-stamped cue logs within 2 hours.
         </p>
         <div className="pt-2">
           <Link

@@ -24,7 +24,7 @@ export default function TechnologyPage() {
           Deterministic Mathematical Solvers & Life-Safety Proofs
         </h1>
         <p className="mt-4 text-base sm:text-lg text-slate-400 leading-relaxed">
-          Eventology eliminates conversational AI theater. In its place, our platform operates on rigorous
+          Eventalogy International eliminates conversational AI theater. In its place, our platform operates on rigorous
           computational geometry, National Building Code (NBC 2016 Part 4) egress equations, and automated
           cryptographic reverse auctions.
         </p>

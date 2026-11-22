@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Sliders, DoorOpen, Speaker, Shield, CheckCircle, ArrowRight } from "lucide-react";
 
 export default function ScaleEstimator() {
@@ -17,35 +18,33 @@ export default function ScaleEstimator() {
   // Audio power estimation: ~15W RMS per occupant for concert grade line-array
   const audioKW = (guests * 0.015).toFixed(1);
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.eventology.in";
-
   return (
     <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#10131E] to-[#0A0D14] p-8 md:p-12 shadow-2xl">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-8">
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="rounded-md bg-[#FFD700]/15 px-2.5 py-1 text-xs font-bold tracking-wider text-[#FFD700] border border-[#FFD700]/30">
+            <span className="rounded-md bg-[#FFD700]/15 px-2.5 py-1 text-xs font-bold tracking-wider text-[#FFD700] border border-[#FFD700]/30 font-mono">
               REAL-TIME LOGISTICS & SAFETY ESTIMATOR
             </span>
-            <span className="rounded-md bg-[#10B981]/15 px-2.5 py-1 text-xs font-bold tracking-wider text-[#10B981] border border-[#10B981]/30">
+            <span className="rounded-md bg-[#10B981]/15 px-2.5 py-1 text-xs font-bold tracking-wider text-[#10B981] border border-[#10B981]/30 font-mono">
               NBC 2016 FORMULA
             </span>
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          <h2 className="font-syne text-2xl md:text-3xl font-extrabold text-white tracking-tight">
             Deterministic Scale & Fire Safety Proofs
           </h2>
           <p className="mt-1 text-sm text-slate-400">
-            Slide guest attendance to calculate mathematical floor area, emergency exit door requirements, and power specs.
+            Slide guest attendance to calculate mathematical floor area, emergency exit door requirements, and power specs for Eventalogy International productions.
           </p>
         </div>
 
-        <a
-          href={`${appUrl}`}
-          className="self-start md:self-auto flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15 border border-white/15 transition-all"
+        <Link
+          href="/app"
+          className="self-start md:self-auto flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/15 border border-white/15 transition-all font-mono text-xs uppercase"
         >
-          <span>Open Full Studio</span>
+          <span>Open Web Studio</span>
           <ArrowRight className="h-4 w-4 text-[#FFD700]" />
-        </a>
+        </Link>
       </div>
 
       {/* Interactive Slider */}

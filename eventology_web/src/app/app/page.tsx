@@ -37,7 +37,7 @@ export default function WebAppGatewayPage() {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
               </span>
               <span className="text-xs font-mono font-bold tracking-wider uppercase text-emerald-400">
-                Eventology Web Studio Engine • Online
+                Eventalogy International Web Studio Engine • Online
               </span>
             </div>
 
@@ -53,10 +53,10 @@ export default function WebAppGatewayPage() {
 
           <div className="max-w-4xl">
             <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-tight">
-              Access Eventology <span className="gold-gradient-text">Anywhere</span>
+              Access Eventalogy <span className="gold-gradient-text">International</span>
             </h1>
             <p className="mt-4 text-lg sm:text-xl text-slate-300 leading-relaxed max-w-3xl">
-              Experience the complete Eventology platform right in your browser. Whether you are an event client planning a luxury wedding, a certified audio/visual contractor submitting reverse auction tenders, or a venue director managing physical facilities, launch your studio in one click.
+              Experience the complete Eventalogy International platform right in your browser. Whether you are an event client planning a luxury wedding, a certified audio/visual contractor submitting reverse auction tenders, or a venue director managing physical facilities, launch your studio in one click.
             </p>
           </div>
 
@@ -121,7 +121,7 @@ export default function WebAppGatewayPage() {
               <div className="relative w-full h-[650px] bg-[#070709] flex flex-col items-center justify-center p-8">
                 <iframe
                   src={appUrl}
-                  title="Eventology Live Web App"
+                  title="Eventalogy International Live Web App"
                   className="w-full h-full border-0 rounded-b-2xl"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                   loading="lazy"
@@ -335,7 +335,7 @@ export default function WebAppGatewayPage() {
                 Runs on Desktop Browsers, Tablets, and On-Ground Mobiles
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                Eventology is built with responsive Flutter 3.x web technology. Your CAD diagrams, stage layouts, and RFQ bids synchronize seamlessly across any screen without data loss or UI distortion.
+                Eventalogy International is built with responsive Flutter 3.x web technology. Your CAD diagrams, stage layouts, and RFQ bids synchronize seamlessly across any screen without data loss or UI distortion.
               </p>
 
               <div className="space-y-4 pt-2">
@@ -387,7 +387,7 @@ export default function WebAppGatewayPage() {
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <div className="flex items-center gap-2">
                     <div className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                    <span className="text-xs font-mono font-bold text-white">Eventology Studio Runtime</span>
+                    <span className="text-xs font-mono font-bold text-white">Eventalogy International Studio Runtime</span>
                   </div>
                   <span className="text-[10px] font-mono text-slate-400">FPS: 60 • WebGL Active</span>
                 </div>
