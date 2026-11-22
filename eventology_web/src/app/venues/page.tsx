@@ -1,11 +1,15 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
-import { MapPin, Users, ShieldCheck, ArrowRight, Zap, Volume2 } from "lucide-react";
+import { MapPin, Users, ShieldCheck, ArrowRight, Zap, Volume2, Search, Filter } from "lucide-react";
 
 const venuesCatalog = [
   {
     id: "v-raipur-imperial",
     name: "The Grand Imperial Lawn & Palace",
-    city: "Raipur, Chhattisgarh",
+    city: "Raipur",
+    fullCity: "Raipur, Chhattisgarh",
     capacity: "650 Pax",
     tariff: "₹3,50,000 / day",
     verified: true,
@@ -17,7 +21,8 @@ const venuesCatalog = [
   {
     id: "v-bilaspur-heritage",
     name: "Royal Heritage Fort & Convention",
-    city: "Bilaspur, Chhattisgarh",
+    city: "Bilaspur",
+    fullCity: "Bilaspur, Chhattisgarh",
     capacity: "1,200 Pax",
     tariff: "₹5,20,000 / day",
     verified: true,
@@ -29,7 +34,8 @@ const venuesCatalog = [
   {
     id: "v-bhilai-arena",
     name: "Mayfair Arena & Amphitheatre",
-    city: "Bhilai, Chhattisgarh",
+    city: "Bhilai",
+    fullCity: "Bhilai, Chhattisgarh",
     capacity: "2,500 Pax",
     tariff: "₹7,50,000 / day",
     verified: true,
@@ -41,7 +47,8 @@ const venuesCatalog = [
   {
     id: "v-delhi-convention",
     name: "Imperial Convention Arena",
-    city: "Aerocity, New Delhi",
+    city: "Delhi",
+    fullCity: "Aerocity, New Delhi",
     capacity: "3,000 Pax",
     tariff: "₹12,00,000 / day",
     verified: true,
@@ -53,19 +60,21 @@ const venuesCatalog = [
   {
     id: "v-jaipur-palace",
     name: "Rajwada Palace & Royal Greens",
-    city: "Jaipur, Rajasthan",
+    city: "Jaipur",
+    fullCity: "Jaipur, Rajasthan",
     capacity: "900 Pax",
     tariff: "₹8,50,000 / day",
     verified: true,
     power: "150 kVA 3-Phase",
-    curfew: "10:00 PM Municipal",
-    image: "https://images.unsplash.com/photo-1587271407850-8d438ca9fdf2?q=80&w=800&auto=format&fit=crop",
-    tags: ["Heritage Courtyard", "Fountain Garden", "Sheesh Mahal"],
+    curfew: "10:00 PM Heritage",
+    image: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop",
+    tags: ["Palace Courtyard", "Chandelier Hall", "Fountain Garden"],
   },
   {
     id: "v-goa-beachfront",
     name: "Seaside Horizon Lawn & Pavilion",
-    city: "North Goa",
+    city: "Goa",
+    fullCity: "North Goa",
     capacity: "450 Pax",
     tariff: "₹4,80,000 / day",
     verified: true,
@@ -77,10 +86,22 @@ const venuesCatalog = [
 ];
 
 export default function VenuesPage() {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://app.eventology.in";
+  const [selectedCity, setSelectedCity] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const cities = ["All", "Raipur", "Bilaspur", "Bhilai", "Delhi", "Jaipur", "Goa"];
+
+  const filteredVenues = venuesCatalog.filter((venue) => {
+    const matchesCity = selectedCity === "All" || venue.city === selectedCity;
+    const matchesQuery =
+      venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.fullCity.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      venue.tags.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCity && matchesQuery;
+  });
 
   return (
-    <div className="py-12 md:py-20 px-6 lg:px-8 space-y-12 max-w-7xl mx-auto">
+    <div className="py-12 md:py-20 px-6 lg:px-8 space-y-10 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/10 pb-8">
         <div>
@@ -104,38 +125,74 @@ export default function VenuesPage() {
         </Link>
       </div>
 
+      {/* Filter and Search Bar */}
+      <div className="rounded-2xl border border-white/10 bg-[#101422] p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search venue name, palace, lawn..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full rounded-xl border border-white/10 bg-black/40 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-[#FFD700]"
+          />
+        </div>
+
+        {/* City Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          {cities.map((city) => (
+            <button
+              key={city}
+              onClick={() => setSelectedCity(city)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                selectedCity === city
+                  ? "bg-[#FFD700] text-black shadow-md"
+                  : "bg-white/5 text-slate-300 hover:bg-white/10"
+              }`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results Count */}
+      <div className="text-xs text-slate-400">
+        Showing <span className="font-bold text-white">{filteredVenues.length}</span> verified venues
+      </div>
+
       {/* Catalog Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {venuesCatalog.map((venue) => (
+        {filteredVenues.map((venue) => (
           <div
             key={venue.id}
-            className="group rounded-3xl border border-white/10 bg-[#121624] overflow-hidden hover:border-white/20 transition-all shadow-xl flex flex-col"
+            className="group rounded-3xl border border-white/10 bg-[#121624] overflow-hidden hover:border-[#FFD700]/30 transition-all shadow-xl flex flex-col justify-between"
           >
             {/* Image */}
-            <div className="relative h-60 w-full overflow-hidden bg-slate-900">
-              <img
-                src={venue.image}
-                alt={venue.name}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
-              <div className="absolute top-4 left-4 flex items-center gap-1 rounded-md bg-[#10B981] px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
-                <ShieldCheck className="h-3 w-3" />
-                <span>NBC 2016 VERIFIED</span>
+            <div>
+              <div className="relative h-60 w-full overflow-hidden bg-slate-900">
+                <img
+                  src={venue.image}
+                  alt={venue.name}
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute top-4 left-4 flex items-center gap-1 rounded-md bg-[#10B981] px-2.5 py-1 text-[10px] font-bold text-white shadow-md">
+                  <ShieldCheck className="h-3 w-3" />
+                  <span>NBC 2016 VERIFIED</span>
+                </div>
+                <div className="absolute top-4 right-4 rounded-md bg-black/75 backdrop-blur-md px-3 py-1 text-xs font-bold text-white">
+                  {venue.capacity}
+                </div>
               </div>
-              <div className="absolute top-4 right-4 rounded-md bg-black/75 backdrop-blur-md px-3 py-1 text-xs font-bold text-white">
-                {venue.capacity}
-              </div>
-            </div>
 
-            {/* Content */}
-            <div className="p-6 flex-1 flex flex-col justify-between">
-              <div>
+              {/* Content */}
+              <div className="p-6">
                 <h3 className="text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors">
                   {venue.name}
                 </h3>
                 <p className="mt-1 text-xs text-slate-400 flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5 text-[#FFD700]" />
-                  <span>{venue.city}</span>
+                  <span>{venue.fullCity}</span>
                 </p>
 
                 <div className="mt-3 flex items-center gap-4 text-xs text-slate-400">
@@ -160,21 +217,21 @@ export default function VenuesPage() {
                   ))}
                 </div>
               </div>
+            </div>
 
-              <div className="mt-6 pt-4 border-t border-white/10 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
-                    Base Day Tariff
-                  </div>
-                  <div className="text-sm font-bold text-[#FFD700]">{venue.tariff}</div>
+            <div className="px-6 pb-6 pt-4 border-t border-white/10 flex items-center justify-between">
+              <div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
+                  Base Day Tariff
                 </div>
-                <a
-                  href={`${appUrl}/venues`}
-                  className="rounded-lg bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/20 transition-colors"
-                >
-                  View CAD & Book
-                </a>
+                <div className="text-sm font-bold text-[#FFD700]">{venue.tariff}</div>
               </div>
+              <Link
+                href="/app"
+                className="rounded-lg bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#FFD700] hover:text-black transition-all"
+              >
+                View CAD & Book
+              </Link>
             </div>
           </div>
         ))}

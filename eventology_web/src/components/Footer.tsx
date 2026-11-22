@@ -110,22 +110,30 @@ export default function Footer() {
                   Become a Certified Vendor
                 </a>
               </li>
-              <li className="flex items-center gap-1.5 text-slate-300">
-                <PhoneCall className="h-3.5 w-3.5 text-[#FFD700]" />
-                <span>+91 771 400 9000</span>
+              <li>
+                <Link href="/contact" className="flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors">
+                  <PhoneCall className="h-3.5 w-3.5 text-[#FFD700]" />
+                  <span>+91 771 400 9000 (Dispatch)</span>
+                </Link>
               </li>
               <li>
-                <span className="text-slate-500">24/7 Field Logistics Dispatch</span>
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  Contact & Enterprise RFQ
+                </Link>
               </li>
               <li>
                 <Link href="/escrow" className="hover:text-white transition-colors">
                   Escrow Dispute Resolution
                 </Link>
               </li>
-              <li>
-                <a href="#privacy" className="hover:text-white transition-colors">
-                  Privacy Policy & Terms
-                </a>
+              <li className="flex items-center gap-2 text-xs">
+                <Link href="/privacy" className="hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+                <span>•</span>
+                <Link href="/terms" className="hover:text-white transition-colors">
+                  Terms of Service
+                </Link>
               </li>
             </ul>
           </div>

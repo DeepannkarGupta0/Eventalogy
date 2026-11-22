@@ -124,13 +124,13 @@ export default function TechnologyPage() {
           Upload your venue blueprint scan or start an event specification to generate instant engineering proofs.
         </p>
         <div className="pt-2">
-          <a
-            href={appUrl}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#FFD700] px-6 py-3.5 text-sm font-bold text-black hover:brightness-110 transition-all"
+          <Link
+            href="/app"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#FFD700] px-6 py-3.5 text-sm font-bold text-black hover:brightness-110 transition-all shadow-[0_0_25px_rgba(255,215,0,0.3)]"
           >
-            <span>Launch Event Studio</span>
+            <span>Launch Web Studio CAD</span>
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
         </div>
       </div>
     </div>
