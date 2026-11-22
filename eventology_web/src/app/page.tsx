@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 
 import CallbackModal from "@/components/CallbackModal";
+import StorytellingScroll from "@/components/StorytellingScroll";
 
 export default function HomePage() {
   const [callbackModalOpen, setCallbackModalOpen] = useState(false);
@@ -107,107 +108,10 @@ export default function HomePage() {
             Enter our web app, chat with our automated bots, or connect directly with our directors.
           </p>
         </div>
-
-        {/* ── THE 3 GATEWAY HUBS (WEB APP • WHATSAPP • INSTAGRAM) ─────────── */}
-        <div id="gateways" className="pt-2 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {/* Gateway 1: Web App Studio */}
-          <div className="rounded-3xl border border-[#D4AF37]/35 bg-white p-7 shadow-[0_8px_30px_rgba(184,134,11,0.08)] hover:shadow-[0_12px_40px_rgba(184,134,11,0.18)] hover:border-[#B8860B] transition-all flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF8E7] border border-[#FDE68A] text-[#B8860B] shadow-sm group-hover:scale-105 transition-transform">
-                  <Laptop className="h-6 w-6" />
-                </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                  INSTANT IN-BROWSER
-                </span>
-              </div>
-              <h2 className="font-outfit text-2xl font-bold text-[#18181B] group-hover:text-[#B8860B] transition-colors">
-                Web App Studio
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Open our interactive workspace. Explore 450+ verified venues, design seating layouts, receive live
-                itemized vendor bids, and manage milestone payments.
-              </p>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-slate-100">
-              <Link
-                href="/app"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#B8860B] via-[#D4AF37] to-[#C59B27] py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md hover:brightness-105 active:scale-95 transition-all"
-              >
-                <span>Launch Web App</span>
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </div>
-          </div>
-
-          {/* Gateway 2: WhatsApp Bot & Concierge */}
-          <div className="rounded-3xl border border-emerald-200 bg-white p-7 shadow-[0_8px_30px_rgba(5,150,105,0.08)] hover:shadow-[0_12px_40px_rgba(5,150,105,0.18)] hover:border-emerald-400 transition-all flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 shadow-sm group-hover:scale-105 transition-transform">
-                  <MessageCircle className="h-6 w-6" />
-                </div>
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-700 border border-emerald-200">
-                  24/7 AUTOMATED BOT
-                </span>
-              </div>
-              <h2 className="font-outfit text-2xl font-bold text-[#18181B] group-hover:text-emerald-700 transition-colors">
-                WhatsApp Concierge
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Chat directly with our automated assistant. Get instant budget estimates, check venue date
-                availabilities, and connect directly with senior event directors.
-              </p>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-slate-100">
-              <a
-                href="https://wa.me/917714009000?text=Hi%20Eventalogy!%20I%20would%20like%20to%20plan%20an%20event."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md active:scale-95 transition-all"
-              >
-                <span>Chat on WhatsApp</span>
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-
-          {/* Gateway 3: Instagram Reels & Inspiration */}
-          <div className="rounded-3xl border border-pink-200 bg-white p-7 shadow-[0_8px_30px_rgba(219,39,119,0.08)] hover:shadow-[0_12px_40px_rgba(219,39,119,0.18)] hover:border-pink-400 transition-all flex flex-col justify-between group">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-50 border border-pink-200 text-pink-600 shadow-sm group-hover:scale-105 transition-transform">
-                  <Instagram className="h-6 w-6" />
-                </div>
-                <span className="rounded-full bg-pink-50 px-3 py-1 text-[11px] font-bold text-pink-700 border border-pink-200">
-                  REAL EVENT REELS
-                </span>
-              </div>
-              <h2 className="font-outfit text-2xl font-bold text-[#18181B] group-hover:text-pink-700 transition-colors">
-                Instagram &amp; Reels
-              </h2>
-              <p className="text-sm text-slate-600 leading-relaxed">
-                Explore real event footage, behind-the-scenes stage lighting, celebrity concerts, and floral
-                mandap decor. Drop a DM to trigger our Instagram event concierge.
-              </p>
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-slate-100">
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-pink-600 via-rose-500 to-purple-600 hover:brightness-105 py-3.5 text-xs font-bold uppercase tracking-wider text-white shadow-md active:scale-95 transition-all"
-              >
-                <span>Explore on Instagram</span>
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-        </div>
       </section>
+
+      {/* ── 3D STORYTELLING SCROLL ANIMATION (CARD → GATEWAY → CELEBRATION → DOCK) ── */}
+      <StorytellingScroll onOpenCallback={() => setCallbackModalOpen(true)} />
 
       {/* ── 2. TRUST STRIP ─────────────────────────────────────────────────── */}
       <section className="border-y border-[#E8E2D5] bg-white py-8 px-6 lg:px-8">
