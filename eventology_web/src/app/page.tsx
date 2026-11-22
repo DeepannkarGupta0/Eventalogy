@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   Sparkles,
@@ -18,65 +19,78 @@ import {
   Layers,
   PhoneCall,
   Crown,
-  Zap,
-  RotateCw,
+  Camera,
+  HeartHandshake,
+  MapPin,
+  Users,
+  Check,
+  Calendar,
 } from "lucide-react";
 
 import ThreeBackground from "@/components/ThreeBackground";
 import TiltCard from "@/components/TiltCard";
 import Interactive3DStage from "@/components/Interactive3DStage";
+import CallbackModal from "@/components/CallbackModal";
 
 export default function HomePage() {
+  const [callbackModalOpen, setCallbackModalOpen] = useState(false);
+
   return (
     <div className="relative min-h-screen bg-[#070709] text-white overflow-hidden">
-      {/* ── 0. THREE.JS 3D WEBGL BACKGROUND CANVAS ──────────────────────────── */}
+      {/* ── 0. THREE.JS 3D AMBIENT BACKGROUND CANVAS ───────────────────────── */}
       <ThreeBackground />
 
+      {/* ── CALLBACK MODAL ─────────────────────────────────────────────────── */}
+      <CallbackModal
+        isOpen={callbackModalOpen}
+        onClose={() => setCallbackModalOpen(false)}
+      />
+
       {/* ── 1. HERO SECTION & 3 GATEWAY HUBS ─────────────────────────────────── */}
-      <section className="relative z-10 px-6 lg:px-8 pt-12 pb-24 md:pt-16 md:pb-32 max-w-7xl mx-auto space-y-12">
+      <section className="relative z-10 px-6 lg:px-8 pt-12 pb-20 md:pt-16 md:pb-28 max-w-7xl mx-auto space-y-12">
         {/* Top Floating Badge */}
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#D4AF37]/35 bg-[#D4AF37]/10 px-4 py-1.5 shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#FFD700]/30 bg-[#FFD700]/10 px-4 py-1.5 shadow-[0_0_20px_rgba(255,215,0,0.15)]">
             <Sparkles className="h-4 w-4 text-[#FFD700]" />
-            <span className="font-syne text-xs sm:text-sm font-bold tracking-wider text-[#FFD700] uppercase">
+            <span className="font-outfit text-xs sm:text-sm font-bold tracking-wider text-[#FFD700] uppercase">
               Eventalogy International &bull; Royal Weddings &bull; Concerts &bull; Global Summits
             </span>
           </div>
 
-          {/* Monumental Headline */}
-          <h1 className="mt-6 font-syne text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white max-w-5xl mx-auto leading-[1.08]">
-            Curating <span className="gold-gradient-text">Extraordinary</span> Celebrations &amp; Stadium Experiences.
+          {/* Warm Luxury Headline */}
+          <h1 className="mt-6 font-outfit text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tight text-white max-w-5xl mx-auto leading-[1.08]">
+            Curating <span className="gold-gradient-text">Extraordinary</span> Celebrations Worldwide.
           </h1>
 
-          {/* Friendly Subtitle */}
+          {/* Friendly, Clear Subtitle */}
           <p className="mt-6 mx-auto max-w-3xl text-base sm:text-xl text-slate-300 leading-relaxed font-normal">
             Whether you are planning a royal destination wedding, a stadium concert, or a luxury corporate gala,{" "}
-            <span className="text-white font-semibold">Eventalogy International</span> is your complete event production
-            partner. Enter our digital web app, chat with our automated bots, or connect with our on-ground directors.
+            <span className="text-[#FFD700] font-semibold">Eventalogy International</span> is your complete event production
+            partner. Enter our digital web app, chat with our automated bots on WhatsApp &amp; Instagram, or connect with our on-ground directors.
           </p>
         </div>
 
-        {/* ── THE 3 INTERACTIVE 3D GATEWAY CARDS ──────────────────────────────── */}
-        <div id="gateways" className="pt-6 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        {/* ── THE 3 GATEWAY CARDS (WEB APP • WHATSAPP • INSTAGRAM) ─────────── */}
+        <div id="gateways" className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {/* Gateway 1: Web App Studio */}
           <TiltCard
-            glareColor="rgba(212, 175, 55, 0.35)"
-            className="border border-[#D4AF37]/40 bg-gradient-to-b from-[#161B28] to-[#0A0D15] p-8 shadow-2xl flex flex-col justify-between hover:border-[#FFD700] group"
+            glareColor="rgba(255, 215, 0, 0.35)"
+            className="border border-[#FFD700]/40 bg-gradient-to-b from-[#1C1A14] to-[#101012] p-8 shadow-2xl flex flex-col justify-between hover:border-[#FFD700] group"
           >
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#FFD700] shadow-md group-hover:scale-110 transition-transform">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFD700]/20 border border-[#FFD700]/40 text-[#FFD700] shadow-md group-hover:scale-110 transition-transform">
                   <Laptop className="h-6 w-6" />
                 </div>
                 <span className="rounded-full bg-[#10B981]/15 px-3 py-1 text-[11px] font-mono font-bold text-emerald-400 border border-emerald-500/30">
                   INSTANT IN-BROWSER
                 </span>
               </div>
-              <h2 className="font-syne text-2xl font-bold text-white group-hover:text-[#FFD700] transition-colors">
+              <h2 className="font-outfit text-2xl font-bold text-white group-hover:text-[#FFD700] transition-colors">
                 Web App Studio
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Open our full interactive workspace. Design 3D floorplans, browse 450+ verified venues, receive live
+                Open our interactive workspace. Design 3D floorplans, browse 450+ verified venues, receive live
                 itemized vendor bids, and manage milestone payments.
               </p>
             </div>
@@ -84,7 +98,7 @@ export default function HomePage() {
             <div className="pt-6 mt-6 border-t border-white/10">
               <Link
                 href="/app"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#FFD700] py-3.5 text-xs font-bold uppercase tracking-wider text-black shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#FFF0A8] py-3.5 text-xs font-bold uppercase tracking-wider text-black shadow-lg hover:brightness-110 active:scale-95 transition-all"
               >
                 <span>Launch Web App</span>
                 <ArrowUpRight className="h-4 w-4" />
@@ -106,12 +120,12 @@ export default function HomePage() {
                   24/7 AUTOMATED BOT
                 </span>
               </div>
-              <h2 className="font-syne text-2xl font-bold text-white group-hover:text-emerald-300 transition-colors">
+              <h2 className="font-outfit text-2xl font-bold text-white group-hover:text-emerald-300 transition-colors">
                 WhatsApp Concierge
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Connect directly with our WhatsApp assistant. Get instant budget estimates, check venue date
-                availabilities, and chat with our senior event production architects.
+                Chat directly with our automated assistant. Get instant budget estimates, check venue date
+                availabilities, and connect directly with our senior event directors.
               </p>
             </div>
 
@@ -142,11 +156,11 @@ export default function HomePage() {
                   LIVE REELS &amp; DM BOT
                 </span>
               </div>
-              <h2 className="font-syne text-2xl font-bold text-white group-hover:text-pink-300 transition-colors">
+              <h2 className="font-outfit text-2xl font-bold text-white group-hover:text-pink-300 transition-colors">
                 Instagram &amp; Reels
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Explore real event footage, behind-the-scenes stage lighting, celebrity artist concerts, and floral
+                Explore real event footage, behind-the-scenes stage lighting, celebrity concerts, and floral
                 mandap decor. Drop a DM to trigger our Instagram event concierge.
               </p>
             </div>
@@ -167,138 +181,523 @@ export default function HomePage() {
       </section>
 
       {/* ── 2. TRUST STRIP ─────────────────────────────────────────────────── */}
-      <section className="relative z-10 border-y border-white/10 bg-[#0B0D14]/80 backdrop-blur-md py-8 px-6 lg:px-8">
+      <section className="relative z-10 border-y border-white/10 bg-[#141416]/90 backdrop-blur-md py-8 px-6 lg:px-8">
         <div className="mx-auto max-w-7xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div className="space-y-1">
-            <p className="font-syne text-3xl font-extrabold text-[#FFD700]">1,200+</p>
+            <p className="font-outfit text-3xl sm:text-4xl font-extrabold text-[#FFD700]">1,200+</p>
             <p className="text-xs text-slate-300 font-medium">Curated Luxury Events</p>
           </div>
           <div className="space-y-1">
-            <p className="font-syne text-3xl font-extrabold text-white">450+</p>
+            <p className="font-outfit text-3xl sm:text-4xl font-extrabold text-white">450+</p>
             <p className="text-xs text-slate-300 font-medium">Handpicked Palaces &amp; Arenas</p>
           </div>
           <div className="space-y-1">
-            <p className="font-syne text-3xl font-extrabold text-emerald-400">100%</p>
+            <p className="font-outfit text-3xl sm:text-4xl font-extrabold text-emerald-400">100%</p>
             <p className="text-xs text-slate-300 font-medium">Milestone Escrow Security</p>
           </div>
           <div className="space-y-1">
-            <p className="font-syne text-3xl font-extrabold text-white">4.95 / 5</p>
+            <p className="font-outfit text-3xl sm:text-4xl font-extrabold text-white">4.95 / 5</p>
             <p className="text-xs text-slate-300 font-medium">Verified Client Satisfaction</p>
           </div>
         </div>
       </section>
 
-      {/* ── 3. WHAT WE DO (THE 4 PILLARS) ──────────────────────────────────── */}
+      {/* ── 3. POPULAR CATEGORIES (INSPIRED BY SETMYEVENT BUT LUXURY) ───────── */}
       <section id="what-we-do" className="relative z-10 py-20 lg:py-28 px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#D4AF37]/10 px-3.5 py-1 text-xs font-bold text-[#FFD700] border border-[#D4AF37]/20 uppercase tracking-widest">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD700]/10 px-3.5 py-1 text-xs font-bold text-[#FFD700] border border-[#FFD700]/20 uppercase tracking-widest">
             <Crown className="h-3.5 w-3.5" />
-            <span>End-to-End Production</span>
+            <span>Complete Event Services</span>
           </div>
-          <h2 className="font-syne text-3xl sm:text-5xl font-black text-white">
-            What We Take Care of For You
+          <h2 className="font-outfit text-3xl sm:text-5xl font-black text-white">
+            Everything You Need Under One Roof
           </h2>
           <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-            Forget running around 20 different contractors. Eventalogy International unifies venues, stage production,
-            decor, gourmet dining, and on-ground management under one trusted team.
+            Forget coordinating between 20 separate contractors. Eventalogy International brings verified luxury venues,
+            floral designers, stage sound engineers, and royal banquets together.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Pillar 1 */}
-          <div className="rounded-2xl border border-white/10 bg-[#10131E] p-6 space-y-4 hover:border-[#D4AF37]/50 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10 text-[#FFD700] border border-[#D4AF37]/30">
-                <Building className="h-6 w-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Category 1: Venues */}
+          <Link
+            href="/venues"
+            className="group relative rounded-3xl border border-white/10 bg-[#141416] p-6 hover:border-[#FFD700]/60 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_10px_30px_rgba(255,215,0,0.1)]"
+          >
+            <div className="space-y-4">
+              <div className="h-44 w-full rounded-2xl overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop"
+                  alt="Luxury Venues"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-[#FFD700] border border-[#FFD700]/30">
+                  450+ Venues
+                </span>
+                <span className="absolute bottom-3 left-3 font-outfit text-xl font-bold text-white">
+                  Palaces &amp; Heritage Forts
+                </span>
               </div>
-              <h3 className="font-syne text-xl font-bold text-white">Curated Luxury Venues</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Heritage palaces in Rajasthan, private beachfront lawns in Goa, and grand convention arenas in Delhi &amp; Mumbai with confirmed dates and clear load-in permits.
+                Grand royal palaces in Jaipur, beachfront lawns in Goa, and 3,000-pax pillarless arenas in Delhi NCR with verified dates and clear sound permits.
               </p>
             </div>
-            <Link href="/venues" className="inline-flex items-center gap-1 text-xs font-bold text-[#FFD700] hover:underline pt-3 border-t border-white/10">
-              <span>View Venue Catalog</span>
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#FFD700] group-hover:underline">
+              <span>Explore Venue Catalog</span>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          </Link>
 
-          {/* Pillar 2 */}
-          <div className="rounded-2xl border border-white/10 bg-[#10131E] p-6 space-y-4 hover:border-[#D4AF37]/50 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10 text-[#FFD700] border border-[#D4AF37]/30">
-                <Palette className="h-6 w-6" />
+          {/* Category 2: Decor & Floral Architecture */}
+          <Link
+            href="/vendors"
+            className="group relative rounded-3xl border border-white/10 bg-[#141416] p-6 hover:border-[#FFD700]/60 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_10px_30px_rgba(255,215,0,0.1)]"
+          >
+            <div className="space-y-4">
+              <div className="h-44 w-full rounded-2xl overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=800&auto=format&fit=crop"
+                  alt="Thematic Decor"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-[#FFD700] border border-[#FFD700]/30">
+                  Custom Concepts
+                </span>
+                <span className="absolute bottom-3 left-3 font-outfit text-xl font-bold text-white">
+                  Thematic Decor &amp; Mandaps
+                </span>
               </div>
-              <h3 className="font-syne text-xl font-bold text-white">Thematic Decor &amp; Floral Art</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Royal mandap architecture, illuminated entrance tunnels, crystal chandeliers, ambient tree fairy lighting, and fresh imported floral artistry.
+                Carved wooden pavilions, illuminated entry tunnels, crystal chandeliers, floral arches, and ambient fairy-lit garden walkways.
               </p>
             </div>
-            <Link href="/vendors" className="inline-flex items-center gap-1 text-xs font-bold text-[#FFD700] hover:underline pt-3 border-t border-white/10">
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#FFD700] group-hover:underline">
               <span>View Decor Portfolios</span>
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          </Link>
 
-          {/* Pillar 3 */}
-          <div className="rounded-2xl border border-white/10 bg-[#10131E] p-6 space-y-4 hover:border-[#D4AF37]/50 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10 text-[#FFD700] border border-[#D4AF37]/30">
-                <Speaker className="h-6 w-6" />
+          {/* Category 3: Audio & Concert Lighting */}
+          <Link
+            href="/vendors"
+            className="group relative rounded-3xl border border-white/10 bg-[#141416] p-6 hover:border-[#FFD700]/60 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_10px_30px_rgba(255,215,0,0.1)]"
+          >
+            <div className="space-y-4">
+              <div className="h-44 w-full rounded-2xl overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=800&auto=format&fit=crop"
+                  alt="Sound & Lighting"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-[#FFD700] border border-[#FFD700]/30">
+                  Concert Grade
+                </span>
+                <span className="absolute bottom-3 left-3 font-outfit text-xl font-bold text-white">
+                  Audio, Lights &amp; 4K LED
+                </span>
               </div>
-              <h3 className="font-syne text-xl font-bold text-white">Concert Audio, Light &amp; AV</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                JBL VTX / L-Acoustics line array systems, grandMA3 intelligent beam lights, 4K high-refresh LED walls, silent DG power, and certified sound engineers.
+                JBL VTX &amp; L-Acoustics line arrays, grandMA3 intelligent beam fixtures, high-refresh 4K LED backdrops, and silent DG power generators.
               </p>
             </div>
-            <Link href="/vendors" className="inline-flex items-center gap-1 text-xs font-bold text-[#FFD700] hover:underline pt-3 border-t border-white/10">
-              <span>Explore Technical Specs</span>
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#FFD700] group-hover:underline">
+              <span>Explore Technical Gear</span>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          </Link>
 
-          {/* Pillar 4 */}
-          <div className="rounded-2xl border border-white/10 bg-[#10131E] p-6 space-y-4 hover:border-[#D4AF37]/50 transition-all flex flex-col justify-between">
-            <div className="space-y-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#D4AF37]/10 text-[#FFD700] border border-[#D4AF37]/30">
-                <UtensilsCrossed className="h-6 w-6" />
+          {/* Category 4: Catering & Royal Banquets */}
+          <Link
+            href="/vendors"
+            className="group relative rounded-3xl border border-white/10 bg-[#141416] p-6 hover:border-[#FFD700]/60 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_10px_30px_rgba(255,215,0,0.1)]"
+          >
+            <div className="space-y-4">
+              <div className="h-44 w-full rounded-2xl overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=800&auto=format&fit=crop"
+                  alt="Royal Catering"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-[#FFD700] border border-[#FFD700]/30">
+                  FSSAI Certified
+                </span>
+                <span className="absolute bottom-3 left-3 font-outfit text-xl font-bold text-white">
+                  Royal Banquets &amp; Dining
+                </span>
               </div>
-              <h3 className="font-syne text-xl font-bold text-white">Royal Banquets &amp; Catering</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Curated multi-cuisine feasts, live artisan food counters, cocktail mixology bars, uniformed white-glove staff, and FSSAI-certified kitchen standards.
+                Multi-cuisine royal buffets, live artisan street food stations, premium cocktail mixology bars, and uniformed five-star banquet crews.
               </p>
             </div>
-            <Link href="/vendors" className="inline-flex items-center gap-1 text-xs font-bold text-[#FFD700] hover:underline pt-3 border-t border-white/10">
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#FFD700] group-hover:underline">
               <span>Explore Menus &amp; Bars</span>
-              <ArrowRight className="h-3 w-3" />
-            </Link>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          </Link>
+
+          {/* Category 5: Cinematic Films & Photography */}
+          <Link
+            href="/vendors"
+            className="group relative rounded-3xl border border-white/10 bg-[#141416] p-6 hover:border-[#FFD700]/60 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_10px_30px_rgba(255,215,0,0.1)]"
+          >
+            <div className="space-y-4">
+              <div className="h-44 w-full rounded-2xl overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=800&auto=format&fit=crop"
+                  alt="Photography"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-[#FFD700] border border-[#FFD700]/30">
+                  4K Cinema
+                </span>
+                <span className="absolute bottom-3 left-3 font-outfit text-xl font-bold text-white">
+                  Films &amp; Photography
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Pre-wedding destination shoots, cinematic 4K drone videography, candid emotional portraiture, and instant same-day teaser edits.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#FFD700] group-hover:underline">
+              <span>View Film Galleries</span>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          </Link>
+
+          {/* Category 6: Entertainment & Celebrity Artists */}
+          <Link
+            href="/vendors"
+            className="group relative rounded-3xl border border-white/10 bg-[#141416] p-6 hover:border-[#FFD700]/60 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-lg hover:shadow-[0_10px_30px_rgba(255,215,0,0.1)]"
+          >
+            <div className="space-y-4">
+              <div className="h-44 w-full rounded-2xl overflow-hidden relative">
+                <img
+                  src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?q=80&w=800&auto=format&fit=crop"
+                  alt="Live Artists"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <span className="absolute top-3 right-3 rounded-full bg-black/60 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-[#FFD700] border border-[#FFD700]/30">
+                  A-List Talent
+                </span>
+                <span className="absolute bottom-3 left-3 font-outfit text-xl font-bold text-white">
+                  Celebrity Artists &amp; DJs
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Bollywood playback singers, Sufi ensembles, club-circuit DJs, traditional Punjabi dhol troupes, and international aerial performers.
+              </p>
+            </div>
+            <div className="pt-4 mt-2 border-t border-white/10 flex items-center justify-between text-xs font-bold text-[#FFD700] group-hover:underline">
+              <span>Explore Artist Roster</span>
+              <ArrowRight className="h-4 w-4" />
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 4. FEATURED LUXURY VENUES (TRANSPARENT TARIFFS & PAX) ─────────── */}
+      <section className="relative z-10 py-16 px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD700]/10 px-3 py-1 text-xs font-bold text-[#FFD700] border border-[#FFD700]/20 uppercase tracking-widest">
+              <Building className="h-3.5 w-3.5" />
+              <span>Handpicked Destinations</span>
+            </div>
+            <h2 className="font-outfit text-3xl sm:text-4xl font-black text-white mt-2">
+              Featured Luxury Venues
+            </h2>
+            <p className="text-slate-300 text-sm mt-1">
+              Verified availability, upfront transparent pricing, and confirmed technical load-in specs.
+            </p>
+          </div>
+
+          <Link
+            href="/venues"
+            className="inline-flex items-center gap-2 text-xs font-bold text-[#FFD700] hover:underline"
+          >
+            <span>View All 450+ Venues</span>
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Venue 1 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] overflow-hidden flex flex-col justify-between hover:border-[#FFD700]/50 transition-all shadow-xl group">
+            <div>
+              <div className="h-48 w-full relative overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop"
+                  alt="Jaipur Palace"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <span className="absolute top-3 left-3 rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#FFD700]" />
+                  <span>Jaipur, Rajasthan</span>
+                </span>
+                <span className="absolute bottom-3 right-3 rounded-full bg-[#FFD700] text-black px-2.5 py-1 text-[11px] font-bold">
+                  ₹5,20,000 / day
+                </span>
+              </div>
+              <div className="p-5 space-y-2">
+                <h3 className="font-outfit text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors">
+                  The Grand Imperial Fort
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Authentic heritage palace with royal courtyards, fountain lawn, and grand chandeliers.
+                </p>
+                <div className="flex items-center gap-4 text-xs text-slate-300 pt-2 font-mono">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5 text-[#FFD700]" />
+                    <span>1,200 Pax</span>
+                  </span>
+                  <span>Heritage Lawn</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 pt-0">
+              <Link
+                href="/app"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#FFD700]/40 bg-[#FFD700]/10 py-2.5 text-xs font-bold text-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-all"
+              >
+                <span>Book via Web App</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Venue 2 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] overflow-hidden flex flex-col justify-between hover:border-[#FFD700]/50 transition-all shadow-xl group">
+            <div>
+              <div className="h-48 w-full relative overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop"
+                  alt="Goa Beachfront"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <span className="absolute top-3 left-3 rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#FFD700]" />
+                  <span>North Goa</span>
+                </span>
+                <span className="absolute bottom-3 right-3 rounded-full bg-[#FFD700] text-black px-2.5 py-1 text-[11px] font-bold">
+                  ₹4,80,000 / day
+                </span>
+              </div>
+              <div className="p-5 space-y-2">
+                <h3 className="font-outfit text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors">
+                  Seaside Horizon Lawn
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Open-air oceanfront lawns with private beach access, sunset deck, and breezy cabanas.
+                </p>
+                <div className="flex items-center gap-4 text-xs text-slate-300 pt-2 font-mono">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5 text-[#FFD700]" />
+                    <span>450 Pax</span>
+                  </span>
+                  <span>Beachfront</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 pt-0">
+              <Link
+                href="/app"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#FFD700]/40 bg-[#FFD700]/10 py-2.5 text-xs font-bold text-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-all"
+              >
+                <span>Book via Web App</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Venue 3 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] overflow-hidden flex flex-col justify-between hover:border-[#FFD700]/50 transition-all shadow-xl group">
+            <div>
+              <div className="h-48 w-full relative overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=800&auto=format&fit=crop"
+                  alt="Delhi Convention Arena"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <span className="absolute top-3 left-3 rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#FFD700]" />
+                  <span>Aerocity, Delhi</span>
+                </span>
+                <span className="absolute bottom-3 right-3 rounded-full bg-[#FFD700] text-black px-2.5 py-1 text-[11px] font-bold">
+                  ₹12,00,000 / day
+                </span>
+              </div>
+              <div className="p-5 space-y-2">
+                <h3 className="font-outfit text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors">
+                  Imperial Convention Arena
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Massive pillarless arena with 20m ceiling height, heavy truss rigging, and 500 kVA dual DG.
+                </p>
+                <div className="flex items-center gap-4 text-xs text-slate-300 pt-2 font-mono">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5 text-[#FFD700]" />
+                    <span>3,000 Pax</span>
+                  </span>
+                  <span>Mega Arena</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 pt-0">
+              <Link
+                href="/app"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#FFD700]/40 bg-[#FFD700]/10 py-2.5 text-xs font-bold text-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-all"
+              >
+                <span>Book via Web App</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Venue 4 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] overflow-hidden flex flex-col justify-between hover:border-[#FFD700]/50 transition-all shadow-xl group">
+            <div>
+              <div className="h-48 w-full relative overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=800&auto=format&fit=crop"
+                  alt="Raipur Imperial Lawn"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <span className="absolute top-3 left-3 rounded-full bg-black/70 backdrop-blur-md px-3 py-1 text-[11px] font-bold text-white flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-[#FFD700]" />
+                  <span>Raipur, CG</span>
+                </span>
+                <span className="absolute bottom-3 right-3 rounded-full bg-[#FFD700] text-black px-2.5 py-1 text-[11px] font-bold">
+                  ₹3,50,000 / day
+                </span>
+              </div>
+              <div className="p-5 space-y-2">
+                <h3 className="font-outfit text-lg font-bold text-white group-hover:text-[#FFD700] transition-colors">
+                  The Grand Imperial Lawn
+                </h3>
+                <p className="text-xs text-slate-400">
+                  Manicured emerald green lawn with 125 kVA 3-phase power and air-conditioned banquet wing.
+                </p>
+                <div className="flex items-center gap-4 text-xs text-slate-300 pt-2 font-mono">
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3.5 w-3.5 text-[#FFD700]" />
+                    <span>650 Pax</span>
+                  </span>
+                  <span>Lawn &amp; Hall</span>
+                </div>
+              </div>
+            </div>
+            <div className="p-5 pt-0">
+              <Link
+                href="/app"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-[#FFD700]/40 bg-[#FFD700]/10 py-2.5 text-xs font-bold text-[#FFD700] hover:bg-[#FFD700] hover:text-black transition-all"
+              >
+                <span>Book via Web App</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 4. INTERACTIVE 3D STAGE & LIGHTING EXPERIENCE ──────────────────── */}
+      {/* ── 5. INTERACTIVE 3D STAGE & LIGHTING EXPERIENCE ──────────────────── */}
       <section className="relative z-10 py-12 px-6 lg:px-8 max-w-7xl mx-auto">
         <Interactive3DStage />
       </section>
 
-      {/* ── 5. THE WEB APP EXPERIENCE PREVIEW ──────────────────────────────── */}
-      <section className="relative z-10 py-20 lg:py-28 px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
+      {/* ── 6. HOW IT WORKS (3 SIMPLE, FRIENDLY STEPS) ──────────────────────── */}
+      <section className="relative z-10 py-20 lg:py-28 px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
+        <div className="text-center space-y-4 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD700]/10 px-3.5 py-1 text-xs font-bold text-[#FFD700] border border-[#FFD700]/20 uppercase tracking-widest">
+            <HeartHandshake className="h-3.5 w-3.5" />
+            <span>Stress-Free Planning</span>
+          </div>
+          <h2 className="font-outfit text-3xl sm:text-5xl font-black text-white">
+            How It Works in 3 Easy Steps
+          </h2>
+          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+            Planning a celebration shouldn&apos;t feel stressful. We make finding venues, booking specialists, and executing your day effortless.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Step 1 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] p-8 space-y-5 text-center relative overflow-hidden group hover:border-[#FFD700]/50 transition-all">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFD700]/15 text-[#FFD700] border border-[#FFD700]/30 font-outfit text-xl font-black">
+              1
+            </div>
+            <h3 className="font-outfit text-2xl font-bold text-white">
+              Share Your Vision &amp; Dates
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Tell us your target destination, guest count, and event style. Launch our web app for interactive 3D layout planning or message our WhatsApp bot.
+            </p>
+            <div className="pt-2 text-xs text-[#FFD700] font-medium flex items-center justify-center gap-1">
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Instant budget estimations</span>
+            </div>
+          </div>
+
+          {/* Step 2 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] p-8 space-y-5 text-center relative overflow-hidden group hover:border-[#FFD700]/50 transition-all">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFD700]/15 text-[#FFD700] border border-[#FFD700]/30 font-outfit text-xl font-black">
+              2
+            </div>
+            <h3 className="font-outfit text-2xl font-bold text-white">
+              Pick Venues &amp; Specialists
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Explore verified 5-star venue photos, real pricing, and certified catering/sound specialists. Lock dates with zero guesswork and complete transparency.
+            </p>
+            <div className="pt-2 text-xs text-[#FFD700] font-medium flex items-center justify-center gap-1">
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <span>100% verified KYC contractors</span>
+            </div>
+          </div>
+
+          {/* Step 3 */}
+          <div className="rounded-3xl border border-white/10 bg-[#141416] p-8 space-y-5 text-center relative overflow-hidden group hover:border-[#FFD700]/50 transition-all">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FFD700]/15 text-[#FFD700] border border-[#FFD700]/30 font-outfit text-xl font-black">
+              3
+            </div>
+            <h3 className="font-outfit text-2xl font-bold text-white">
+              Celebrate with Peace of Mind
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Our on-ground production director oversees soundcheck, vendor coordination, and timelines. Payments stay safe in our 25/50/25 milestone escrow.
+            </p>
+            <div className="pt-2 text-xs text-[#FFD700] font-medium flex items-center justify-center gap-1">
+              <Check className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Dedicated on-site director</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 7. THE WEB APP DIGITAL STUDIO PREVIEW ───────────────────────────── */}
+      <section className="relative z-10 py-16 px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/15 px-3.5 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
               <span>The Eventalogy Digital Studio</span>
             </div>
-            <h2 className="font-syne text-3xl sm:text-5xl font-black text-white leading-tight">
-              All Booking, 3D Drafting &amp; Planning Lives Inside the Web App.
+            <h2 className="font-outfit text-3xl sm:text-5xl font-black text-white leading-tight">
+              All 3D Drafting, Reverse Bidding &amp; Contracts Live in the Web App.
             </h2>
             <p className="text-slate-300 text-base leading-relaxed">
-              When you launch our web app, you unlock the complete operational command center for your event. No downloads
-              needed — everything works smoothly on any desktop or mobile browser.
+              When you launch our web app, you unlock the complete operational command center. No app downloads
+              required — everything works smoothly in your desktop or mobile browser.
             </p>
 
             <div className="space-y-4 pt-2">
               <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4AF37]/15 text-[#FFD700] shrink-0 mt-0.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFD700]/15 text-[#FFD700] shrink-0 mt-0.5">
                   <Layers className="h-4 w-4" />
                 </div>
                 <div>
@@ -310,7 +709,7 @@ export default function HomePage() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#D4AF37]/15 text-[#FFD700] shrink-0 mt-0.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#FFD700]/15 text-[#FFD700] shrink-0 mt-0.5">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
@@ -337,7 +736,7 @@ export default function HomePage() {
             <div className="pt-4 flex flex-wrap items-center gap-4">
               <Link
                 href="/app"
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] to-[#FFD700] px-6 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-black shadow-lg hover:brightness-110 active:scale-95 transition-all"
+                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#FFF0A8] px-6 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider text-black shadow-lg hover:brightness-110 active:scale-95 transition-all"
               >
                 <span>Launch Web App Studio</span>
                 <ArrowUpRight className="h-4 w-4" />
@@ -349,8 +748,8 @@ export default function HomePage() {
           {/* Right Visual Box */}
           <div className="lg:col-span-6">
             <TiltCard
-              glareColor="rgba(212, 175, 55, 0.25)"
-              className="border border-[#D4AF37]/30 bg-[#0C0F17] p-5 shadow-2xl space-y-4"
+              glareColor="rgba(255, 215, 0, 0.25)"
+              className="border border-[#FFD700]/30 bg-[#101012] p-5 shadow-2xl space-y-4"
             >
               {/* Window Controls */}
               <div className="flex items-center justify-between border-b border-white/10 pb-3 px-2">
@@ -372,15 +771,15 @@ export default function HomePage() {
                     <p className="text-sm font-bold text-white">Grand Courtyard &amp; Royal Pavilion</p>
                     <p className="text-xs text-slate-400">Venue Capacity: 1,200 Pax &bull; Current Layout: 780 Seats</p>
                   </div>
-                  <span className="rounded bg-[#D4AF37]/20 border border-[#D4AF37]/30 px-2.5 py-1 text-xs font-bold text-[#FFD700]">
+                  <span className="rounded bg-[#FFD700]/20 border border-[#FFD700]/30 px-2.5 py-1 text-xs font-bold text-[#FFD700]">
                     STAGE OK
                   </span>
                 </div>
 
-                <div className="h-48 rounded-lg bg-[#121622] border border-white/10 relative flex items-center justify-center overflow-hidden">
+                <div className="h-48 rounded-lg bg-[#141416] border border-white/10 relative flex items-center justify-center overflow-hidden">
                   <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff0a_1px,transparent_1px),linear-gradient(to_bottom,#ffffff0a_1px,transparent_1px)] bg-[size:18px_18px]" />
                   <div className="relative text-center space-y-2">
-                    <div className="mx-auto h-12 w-52 rounded-xl border border-[#FFD700]/60 bg-[#D4AF37]/20 flex items-center justify-center text-xs font-bold text-[#FFD700]">
+                    <div className="mx-auto h-12 w-52 rounded-xl border border-[#FFD700]/60 bg-[#FFD700]/20 flex items-center justify-center text-xs font-bold text-[#FFD700]">
                       MAIN PERFORMANCE STAGE (45x22 ft)
                     </div>
                     <div className="flex justify-center gap-2 pt-1">
@@ -416,127 +815,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 6. HOW YOU CAN REACH US / OMNICHANNEL GATEWAY ───────────────────── */}
-      <section className="relative z-10 border-t border-white/10 bg-[#090B12]/80 backdrop-blur-md py-20 lg:py-28 px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-16">
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <span className="text-xs font-bold tracking-widest text-[#FFD700] uppercase font-mono">
-              DIRECT ACCESS CHANNELS
-            </span>
-            <h2 className="font-syne text-3xl sm:text-5xl font-black text-white">
-              Connect With Us Anywhere, Anytime.
-            </h2>
-            <p className="text-slate-300 text-sm sm:text-base">
-              Start your planning journey through your preferred channel. Our automated assistants and production team
-              are ready 24/7.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Box 1 */}
-            <div className="rounded-3xl border border-[#D4AF37]/30 bg-[#121622] p-8 space-y-5 text-center flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#D4AF37]/20 text-[#FFD700] border border-[#D4AF37]/40">
-                  <Laptop className="h-7 w-7" />
-                </div>
-                <h3 className="font-syne text-2xl font-bold text-white">In-Browser Web Studio</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  The complete DIY &amp; professional workspace. Draft floorplans, review contractor manifests, and book
-                  with 100% milestone protection.
-                </p>
-              </div>
-              <Link
-                href="/app"
-                className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#FFD700] hover:underline pt-4 border-t border-white/10"
-              >
-                <span>Launch Web Studio</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-
-            {/* Box 2 */}
-            <div className="rounded-3xl border border-emerald-500/30 bg-[#0E1A17] p-8 space-y-5 text-center flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                  <MessageCircle className="h-7 w-7" />
-                </div>
-                <h3 className="font-syne text-2xl font-bold text-white">WhatsApp Bot Assistant</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Message our intelligent WhatsApp bot to receive quick budget breakdowns, check date availability, and
-                  get instant quotes directly on your phone.
-                </p>
-              </div>
-              <a
-                href="https://wa.me/917714009000?text=Hi%20Eventalogy!%20I%20would%20like%20to%20plan%20an%20event."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-400 hover:underline pt-4 border-t border-white/10"
-              >
-                <span>Chat on WhatsApp</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </a>
-            </div>
-
-            {/* Box 3 */}
-            <div className="rounded-3xl border border-pink-500/30 bg-[#1A0E18] p-8 space-y-5 text-center flex flex-col justify-between">
-              <div className="space-y-3">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-pink-500/20 text-pink-400 border border-pink-500/40">
-                  <Instagram className="h-7 w-7" />
-                </div>
-                <h3 className="font-syne text-2xl font-bold text-white">Instagram Inspiration</h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Watch our latest event reels, grand mandap lighting, live concerts, and drop a direct message to trigger
-                  our Instagram concierge.
-                </p>
-              </div>
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-pink-400 hover:underline pt-4 border-t border-white/10"
-              >
-                <span>Follow &amp; Message</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 7. GRAND CALL TO ACTION ──────────────────────────────────────────── */}
-      <section className="relative z-10 py-20 lg:py-28 px-6 lg:px-8 max-w-7xl mx-auto text-center">
-        <div className="rounded-3xl border border-[#D4AF37]/40 bg-gradient-to-r from-[#1E1609] via-[#10131E] to-[#1E1609] p-10 sm:p-16 lg:p-20 space-y-8 shadow-[0_20px_60px_rgba(212,175,55,0.2)]">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#D4AF37]/20 px-4 py-1.5 text-xs font-bold text-[#FFD700] border border-[#FFD700]/30">
+      {/* ── 8. FULL PLANNING CONCIERGE BANNER (JUST LIKE SETMYEVENT) ───────── */}
+      <section className="relative z-10 py-16 px-6 lg:px-8 max-w-7xl mx-auto text-center">
+        <div className="rounded-3xl border border-[#FFD700]/40 bg-gradient-to-r from-[#1E1A10] via-[#141416] to-[#1E1A10] p-10 sm:p-14 lg:p-16 space-y-6 shadow-[0_20px_60px_rgba(255,215,0,0.15)]">
+          <div className="inline-flex items-center gap-2 rounded-full bg-[#FFD700]/20 px-4 py-1.5 text-xs font-bold text-[#FFD700] border border-[#FFD700]/30">
             <Sparkles className="h-4 w-4" />
-            <span>LET&apos;S CREATE MAGIC TOGETHER</span>
+            <span>FULL-SERVICE EVENT CONCIERGE</span>
           </div>
 
-          <h2 className="font-syne text-3xl sm:text-5xl lg:text-6xl font-black text-white max-w-4xl mx-auto leading-tight">
-            Ready to Plan an Unforgettable Celebration?
+          <h2 className="font-outfit text-3xl sm:text-5xl font-black text-white max-w-3xl mx-auto leading-tight">
+            Want Our Team to Handle Everything from Start to Finish?
           </h2>
 
           <p className="mx-auto max-w-2xl text-slate-300 text-sm sm:text-base leading-relaxed">
-            Enter the Eventalogy Web App to build your custom plan, chat with our automated bot on WhatsApp, or speak
-            directly with our senior event directors.
+            Sit back and relax. Our senior directors curate venues, negotiate vendor contracts, run soundchecks, and coordinate day-of execution on site.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Link
-              href="/app"
-              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#AA820A] px-8 py-4 font-syne text-sm sm:text-base font-bold uppercase tracking-wider text-black shadow-xl hover:brightness-110 active:scale-95 transition-all"
+            <button
+              onClick={() => setCallbackModalOpen(true)}
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#D4AF37] via-[#FFD700] to-[#FFF0A8] px-7 py-3.5 font-outfit text-xs sm:text-sm font-bold uppercase tracking-wider text-black shadow-xl hover:brightness-110 active:scale-95 transition-all"
             >
-              <Laptop className="h-5 w-5" />
-              <span>Enter Web App Studio</span>
-              <ArrowUpRight className="h-5 w-5" />
-            </Link>
+              <PhoneCall className="h-4 w-4" />
+              <span>Request a Call Back</span>
+            </button>
 
             <a
               href="https://wa.me/917714009000?text=Hi%20Eventalogy!%20I%20would%20like%20to%20plan%20an%20event."
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-8 py-4 font-syne text-sm sm:text-base font-bold uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20 transition-all"
+              className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-7 py-3.5 font-outfit text-xs sm:text-sm font-bold uppercase tracking-wider text-emerald-400 hover:bg-emerald-500/20 transition-all"
             >
-              <MessageCircle className="h-5 w-5" />
+              <MessageCircle className="h-4 w-4" />
               <span>Chat on WhatsApp</span>
             </a>
           </div>

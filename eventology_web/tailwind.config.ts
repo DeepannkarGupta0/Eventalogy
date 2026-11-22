@@ -9,22 +9,27 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#070709",
-        surface: "#10131E",
-        surfaceElevated: "#161B28",
-        glassBorder: "rgba(212, 175, 55, 0.15)",
+        background: "#070709", // Deepest Midnight (from Flutter AppColors)
+        surface: "#141416", // Elevated Midnight
+        surfaceLight: "#1F1F22", // Interactive surface
+        surfaceHighlight: "#2A2A2D", // Surface highlight
+        glassBorder: "rgba(255, 215, 0, 0.15)",
         brand: {
-          gold: "#D4AF37",
-          goldBright: "#FFD700",
-          goldMuted: "#AA820A",
+          gold: "#FFD700", // Brilliant Gold (AppColors.primary)
+          goldLight: "#FFF0A8", // Champagne Gold (AppColors.primaryLight)
+          goldWarm: "#D4AF37", // Royal Gold
+          goldDark: "#AA820A", // Deep Gold
           emerald: "#10B981",
           crimson: "#EF4444",
           obsidian: "#070709",
-          champagne: "#F5E6C8",
+          champagne: "#FDF6E2",
+          cardDark: "#10131E",
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        outfit: ["var(--font-outfit)", "Outfit", "system-ui", "sans-serif"],
+        playfair: ["var(--font-playfair)", "Playfair Display", "Georgia", "serif"],
+        sans: ["var(--font-outfit)", "Outfit", "system-ui", "sans-serif"],
         syne: ["var(--font-syne)", "Syne", "sans-serif"],
         mono: ["var(--font-mono)", "JetBrains Mono", "monospace"],
       },

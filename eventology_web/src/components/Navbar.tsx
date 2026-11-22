@@ -26,10 +26,10 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <span className="font-syne text-xl sm:text-2xl font-black tracking-wider text-white">
+              <span className="font-outfit text-xl sm:text-2xl font-black tracking-wider text-white">
                 EVENTALOGY
               </span>
-              <span className="font-syne text-[10px] sm:text-xs font-bold tracking-widest text-[#D4AF37] uppercase">
+              <span className="font-outfit text-[10px] sm:text-xs font-bold tracking-widest text-[#FFD700] uppercase">
                 INTERNATIONAL
               </span>
             </div>
