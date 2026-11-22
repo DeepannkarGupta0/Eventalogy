@@ -95,13 +95,13 @@ export default function VenuesPage() {
           </p>
         </div>
 
-        <a
-          href={`${appUrl}`}
-          className="flex items-center gap-2 rounded-xl bg-[#FFD700] px-5 py-3 text-sm font-bold text-black hover:brightness-110 transition-all self-start md:self-auto"
+        <Link
+          href="/app"
+          className="flex items-center gap-2 rounded-xl bg-[#FFD700] px-5 py-3 text-sm font-bold text-black hover:brightness-110 transition-all self-start md:self-auto shadow-[0_0_20px_rgba(255,215,0,0.3)]"
         >
-          <span>Open in Studio CAD</span>
+          <span>Launch Web Studio CAD</span>
           <ArrowRight className="h-4 w-4" />
-        </a>
+        </Link>
       </div>
 
       {/* Catalog Grid */}

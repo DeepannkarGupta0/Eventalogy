@@ -64,6 +64,13 @@ export default function Navbar() {
           >
             Milestone Escrow
           </Link>
+          <Link
+            href="/app"
+            className="flex items-center gap-1.5 rounded-lg border border-[#FFD700]/30 bg-[#FFD700]/10 px-3 py-1.5 text-xs font-bold text-[#FFD700] hover:bg-[#FFD700]/20 transition-all ml-1"
+          >
+            <span className="flex h-1.5 w-1.5 rounded-full bg-[#FFD700] animate-pulse"></span>
+            <span>Web App</span>
+          </Link>
         </nav>
 
         {/* Right Actions */}
@@ -80,13 +87,13 @@ export default function Navbar() {
             Partner With Us
           </a>
 
-          <a
-            href={appUrl}
+          <Link
+            href="/app"
             className="flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#FFD700] to-[#E6B800] px-4.5 py-2 text-sm font-bold text-black shadow-[0_0_20px_rgba(255,215,0,0.25)] hover:brightness-110 transition-all"
           >
-            <span>Launch Studio</span>
+            <span>Launch Web App</span>
             <ArrowUpRight className="h-4 w-4" />
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Hamburger */}
@@ -139,6 +146,14 @@ export default function Navbar() {
           >
             Milestone Escrow
           </Link>
+          <Link
+            href="/app"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center justify-between text-base font-bold text-[#FFD700]"
+          >
+            <span>Launch Web App</span>
+            <span className="rounded bg-[#FFD700]/20 px-2 py-0.5 text-xs text-[#FFD700]">LIVE</span>
+          </Link>
           <div className="pt-4 border-t border-white/10 space-y-3">
             <a
               href={`${appUrl}/become-vendor`}
@@ -146,12 +161,13 @@ export default function Navbar() {
             >
               Partner With Us
             </a>
-            <a
-              href={appUrl}
-              className="block w-full text-center rounded-lg bg-[#FFD700] py-2.5 text-sm font-bold text-black"
+            <Link
+              href="/app"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full text-center rounded-lg bg-[#FFD700] py-2.5 text-sm font-bold text-black shadow-lg"
             >
-              Launch Event Studio
-            </a>
+              Launch Web App Studio
+            </Link>
           </div>
         </div>
       )}

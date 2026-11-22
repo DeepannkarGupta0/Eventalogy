@@ -15,6 +15,10 @@ import {
   Star,
   CheckCircle2,
   FileCode2,
+  Laptop,
+  Smartphone,
+  ExternalLink,
+  Zap,
 } from "lucide-react";
 import ScaleEstimator from "@/components/ScaleEstimator";
 
@@ -114,6 +118,24 @@ export default function HomePage() {
             Institutional event architecture for high-stakes corporate galas, stadium concerts, and luxury weddings.
             Engineered with OpenCV blueprint vectorizers, NBC 2016 life safety proofs, and 25/50/25 milestone escrow.
           </p>
+
+          {/* Direct Web App Quick Launchers */}
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <Link
+              href="/app"
+              className="flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#FFD700] to-[#E6B800] px-7 py-3.5 text-base font-bold text-black shadow-[0_0_25px_rgba(255,215,0,0.3)] hover:brightness-110 transition-all"
+            >
+              <span>Launch In-Browser Web App</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/venues"
+              className="flex items-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-6 py-3.5 text-base font-medium text-white hover:bg-white/10 transition-all"
+            >
+              <Search className="h-4 w-4 text-[#FFD700]" />
+              <span>Explore Verified Venues</span>
+            </Link>
+          </div>
 
           {/* ── Universal Search Dock ────────────────────────────────────── */}
           <div className="mt-10 rounded-3xl border border-white/15 bg-[#121624]/90 p-4 shadow-2xl backdrop-blur-2xl max-w-5xl">
@@ -344,6 +366,127 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ── 3.5. Web App & Multi-Screen Parity Showcase ───────────────────── */}
+      <section className="px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl rounded-3xl border border-[#FFD700]/30 bg-gradient-to-br from-[#121624] via-[#0D101C] to-[#121624] p-8 md:p-14 shadow-2xl relative overflow-hidden">
+          <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-[#FFD700]/5 rounded-full blur-3xl pointer-events-none"></div>
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <div className="flex items-center gap-2">
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span className="text-xs font-mono font-bold tracking-widest text-[#FFD700] uppercase">
+                  Zero Download • Cloud Architecture
+                </span>
+              </div>
+
+              <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
+                Run the Whole Production from Your <span className="gold-gradient-text">Web Browser</span>
+              </h2>
+
+              <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+                Eventology is not just a marketing catalog — it is a deterministic web-based operating system. Open it instantly on your desktop monitor to vectorize venue blueprints, solve NBC 2016 fire egress distances, and tender reverse auctions to certified crews.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-white text-sm">
+                    <Laptop className="h-4 w-4 text-[#FFD700]" />
+                    <span>Desktop Web Studio</span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    1320px ultra-wide responsive canvas, multi-window layout, SAT geometry solver, and live reverse auction bidding.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 p-4 space-y-1.5">
+                  <div className="flex items-center gap-2 font-bold text-white text-sm">
+                    <Smartphone className="h-4 w-4 text-emerald-400" />
+                    <span>Mobile PWA & Android</span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    On-site production mode: crew dispatch, walkie-talkie channel, dB audio checks, and escrow milestone QR releases.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/app"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#FFD700] to-[#E6B800] px-7 py-3.5 text-sm font-bold text-black shadow-[0_0_25px_rgba(255,215,0,0.3)] hover:brightness-110 transition-all"
+                >
+                  <span>Open Web App Gateway</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href={appUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                >
+                  <span>Direct Web App Link</span>
+                  <ExternalLink className="h-3.5 w-3.5 text-slate-400" />
+                </a>
+              </div>
+            </div>
+
+            {/* Visual Frame of the Web App */}
+            <div className="lg:col-span-5">
+              <div className="rounded-2xl border border-white/15 bg-black/80 p-3 shadow-2xl backdrop-blur-xl">
+                {/* Browser bar */}
+                <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3 px-2">
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full bg-red-500/80"></div>
+                    <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/80"></div>
+                    <div className="h-2.5 w-2.5 rounded-full bg-green-500/80"></div>
+                  </div>
+                  <div className="rounded-md bg-white/5 border border-white/5 px-3 py-0.5 text-[10px] font-mono text-slate-400">
+                    app.eventology.in/venues
+                  </div>
+                  <div className="h-2 w-2"></div>
+                </div>
+
+                {/* Simulated Screen */}
+                <div className="rounded-xl bg-[#090C15] border border-white/5 p-4 space-y-3 font-mono text-xs">
+                  <div className="flex items-center justify-between text-slate-400 text-[11px]">
+                    <span className="text-[#FFD700] font-bold">EVENTOLOGY STUDIO WEB</span>
+                    <span className="text-emerald-400">CONNECTED (LIVE)</span>
+                  </div>
+
+                  <div className="rounded-lg bg-white/5 p-3 space-y-2 border border-white/5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-300 font-sans text-xs font-bold">The Grand Imperial Lawn</span>
+                      <span className="text-[10px] text-emerald-400 font-sans font-semibold">Verified Venue</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 font-sans">
+                      Blueprint Vectorized: 18,500 sq.ft • NBC 2016 Compliant
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[10px]">
+                    <div className="rounded bg-black/40 p-2 border border-white/5">
+                      <div className="text-slate-500">POWER DRAW</div>
+                      <div className="font-bold text-white mt-0.5">85 kW / 125 kVA</div>
+                    </div>
+                    <div className="rounded bg-black/40 p-2 border border-white/5">
+                      <div className="text-slate-500">ESCROW LOCK</div>
+                      <div className="font-bold text-[#FFD700] mt-0.5">₹87,500 (25%)</div>
+                    </div>
+                  </div>
+
+                  <Link
+                    href="/app"
+                    className="block text-center rounded-lg bg-[#FFD700] py-2 text-[11px] font-bold text-black font-sans hover:brightness-110 transition-all"
+                  >
+                    Launch In-Browser Studio →
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── 4. Featured Venues Showcase ──────────────────────────────────── */}
       <section className="px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -535,12 +678,12 @@ export default function HomePage() {
               Launch your event production studio in 60 seconds. Generate verified CAD floorplans, certify municipal life-safety code compliance, and tender equipment tenders with institutional escrow protection.
             </p>
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
-                href={appUrl}
+              <Link
+                href="/app"
                 className="w-full sm:w-auto rounded-xl bg-gradient-to-r from-[#FFD700] to-[#E6B800] px-8 py-4 text-base font-bold text-black shadow-[0_0_30px_rgba(255,215,0,0.35)] hover:brightness-110 transition-all"
               >
-                Launch Event Production Studio
-              </a>
+                Launch Web App Studio
+              </Link>
               <Link
                 href="/venues"
                 className="w-full sm:w-auto rounded-xl border border-white/20 px-8 py-4 text-base font-bold text-white hover:bg-white/5 transition-all"

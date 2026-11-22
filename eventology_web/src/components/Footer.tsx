@@ -31,9 +31,14 @@ export default function Footer() {
           {/* Platform & Tech */}
           <div>
             <h3 className="text-xs font-bold tracking-widest text-white uppercase mb-4">
-              Platform & Tech
+              Platform & Web App
             </h3>
             <ul className="space-y-2.5 text-sm">
+              <li>
+                <Link href="/app" className="text-[#FFD700] font-bold hover:underline flex items-center gap-1.5">
+                  <span>Launch Web App (/app)</span>
+                </Link>
+              </li>
               <li>
                 <Link href="/technology" className="hover:text-white transition-colors">
                   OpenCV Blueprint Vectorizer
