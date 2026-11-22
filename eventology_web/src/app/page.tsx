@@ -27,9 +27,6 @@ import {
   Calendar,
 } from "lucide-react";
 
-import ThreeBackground from "@/components/ThreeBackground";
-import TiltCard from "@/components/TiltCard";
-import Interactive3DStage from "@/components/Interactive3DStage";
 import CallbackModal from "@/components/CallbackModal";
 
 export default function HomePage() {
@@ -37,8 +34,9 @@ export default function HomePage() {
 
   return (
     <div className="relative min-h-screen bg-[#070709] text-white overflow-hidden">
-      {/* ── 0. THREE.JS 3D AMBIENT BACKGROUND CANVAS ───────────────────────── */}
-      <ThreeBackground />
+      {/* ── SUBTLE WARM LUXURY BACKGROUND GLOWS (CLEAN CSS) ────────────────── */}
+      <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] bg-[radial-gradient(ellipse_at_top,rgba(255,215,0,0.08),transparent_70%)]" />
+      <div className="pointer-events-none absolute top-[40%] right-[-10%] w-[500px] h-[500px] bg-[radial-gradient(circle,rgba(212,175,55,0.05),transparent_70%)]" />
 
       {/* ── CALLBACK MODAL ─────────────────────────────────────────────────── */}
       <CallbackModal
@@ -73,13 +71,10 @@ export default function HomePage() {
         {/* ── THE 3 GATEWAY CARDS (WEB APP • WHATSAPP • INSTAGRAM) ─────────── */}
         <div id="gateways" className="pt-4 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {/* Gateway 1: Web App Studio */}
-          <TiltCard
-            glareColor="rgba(255, 215, 0, 0.35)"
-            className="border border-[#FFD700]/40 bg-gradient-to-b from-[#1C1A14] to-[#101012] p-8 shadow-2xl flex flex-col justify-between hover:border-[#FFD700] group"
-          >
+          <div className="rounded-3xl border border-[#FFD700]/30 bg-gradient-to-b from-[#1C1A14] to-[#101012] p-8 shadow-xl hover:border-[#FFD700] hover:shadow-[0_10px_40px_rgba(255,215,0,0.15)] transition-all duration-300 flex flex-col justify-between group">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFD700]/20 border border-[#FFD700]/40 text-[#FFD700] shadow-md group-hover:scale-110 transition-transform">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFD700]/20 border border-[#FFD700]/40 text-[#FFD700] shadow-md group-hover:scale-105 transition-transform">
                   <Laptop className="h-6 w-6" />
                 </div>
                 <span className="rounded-full bg-[#10B981]/15 px-3 py-1 text-[11px] font-mono font-bold text-emerald-400 border border-emerald-500/30">
@@ -90,7 +85,7 @@ export default function HomePage() {
                 Web App Studio
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed">
-                Open our interactive workspace. Design 3D floorplans, browse 450+ verified venues, receive live
+                Open our interactive workspace. Explore 450+ verified venues, design seating floorplans, receive live
                 itemized vendor bids, and manage milestone payments.
               </p>
             </div>
@@ -104,16 +99,13 @@ export default function HomePage() {
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
             </div>
-          </TiltCard>
+          </div>
 
           {/* Gateway 2: WhatsApp Bot & Concierge */}
-          <TiltCard
-            glareColor="rgba(37, 211, 102, 0.35)"
-            className="border border-emerald-500/30 bg-gradient-to-b from-[#0F1E19] to-[#08120F] p-8 shadow-2xl flex flex-col justify-between hover:border-emerald-400 group"
-          >
+          <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-[#0F1E19] to-[#08120F] p-8 shadow-xl hover:border-emerald-400 hover:shadow-[0_10px_40px_rgba(37,211,102,0.15)] transition-all duration-300 flex flex-col justify-between group">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-md group-hover:scale-110 transition-transform">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-md group-hover:scale-105 transition-transform">
                   <MessageCircle className="h-6 w-6" />
                 </div>
                 <span className="rounded-full bg-emerald-500/20 px-3 py-1 text-[11px] font-mono font-bold text-emerald-300 border border-emerald-500/30">
@@ -140,16 +132,13 @@ export default function HomePage() {
                 <ArrowUpRight className="h-4 w-4" />
               </a>
             </div>
-          </TiltCard>
+          </div>
 
           {/* Gateway 3: Instagram Reels & Inspiration */}
-          <TiltCard
-            glareColor="rgba(236, 72, 153, 0.35)"
-            className="border border-pink-500/30 bg-gradient-to-b from-[#1C0F19] to-[#0E070D] p-8 shadow-2xl flex flex-col justify-between hover:border-pink-400 group"
-          >
+          <div className="rounded-3xl border border-pink-500/30 bg-gradient-to-b from-[#1C0F19] to-[#0E070D] p-8 shadow-xl hover:border-pink-400 hover:shadow-[0_10px_40px_rgba(236,72,153,0.15)] transition-all duration-300 flex flex-col justify-between group">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-500/20 border border-pink-500/40 text-pink-400 shadow-md group-hover:scale-110 transition-transform">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pink-500/20 border border-pink-500/40 text-pink-400 shadow-md group-hover:scale-105 transition-transform">
                   <Instagram className="h-6 w-6" />
                 </div>
                 <span className="rounded-full bg-pink-500/20 px-3 py-1 text-[11px] font-mono font-bold text-pink-300 border border-pink-500/30">
@@ -176,7 +165,7 @@ export default function HomePage() {
                 <ArrowUpRight className="h-4 w-4" />
               </a>
             </div>
-          </TiltCard>
+          </div>
         </div>
       </section>
 
@@ -605,12 +594,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 5. INTERACTIVE 3D STAGE & LIGHTING EXPERIENCE ──────────────────── */}
-      <section className="relative z-10 py-12 px-6 lg:px-8 max-w-7xl mx-auto">
-        <Interactive3DStage />
-      </section>
-
-      {/* ── 6. HOW IT WORKS (3 SIMPLE, FRIENDLY STEPS) ──────────────────────── */}
+      {/* ── 5. HOW IT WORKS (3 SIMPLE, FRIENDLY STEPS) ──────────────────────── */}
       <section className="relative z-10 py-20 lg:py-28 px-6 lg:px-8 max-w-7xl mx-auto space-y-16">
         <div className="text-center space-y-4 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-[#FFD700]/10 px-3.5 py-1 text-xs font-bold text-[#FFD700] border border-[#FFD700]/20 uppercase tracking-widest">
@@ -635,7 +619,7 @@ export default function HomePage() {
               Share Your Vision &amp; Dates
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Tell us your target destination, guest count, and event style. Launch our web app for interactive 3D layout planning or message our WhatsApp bot.
+              Tell us your target destination, guest count, and event style. Launch our web app for interactive layout planning or message our WhatsApp bot.
             </p>
             <div className="pt-2 text-xs text-[#FFD700] font-medium flex items-center justify-center gap-1">
               <Check className="h-3.5 w-3.5 text-emerald-400" />
@@ -679,7 +663,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── 7. THE WEB APP DIGITAL STUDIO PREVIEW ───────────────────────────── */}
+      {/* ── 6. THE WEB APP DIGITAL STUDIO PREVIEW ───────────────────────────── */}
       <section className="relative z-10 py-16 px-6 lg:px-8 max-w-7xl mx-auto space-y-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           <div className="lg:col-span-6 space-y-6">
@@ -688,7 +672,7 @@ export default function HomePage() {
               <span>The Eventalogy Digital Studio</span>
             </div>
             <h2 className="font-outfit text-3xl sm:text-5xl font-black text-white leading-tight">
-              All 3D Drafting, Reverse Bidding &amp; Contracts Live in the Web App.
+              All Digital Drafting, Reverse Bidding &amp; Contracts Live in the Web App.
             </h2>
             <p className="text-slate-300 text-base leading-relaxed">
               When you launch our web app, you unlock the complete operational command center. No app downloads
@@ -701,9 +685,9 @@ export default function HomePage() {
                   <Layers className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white text-sm">Interactive 3D Seating &amp; Stage Layout</h4>
+                  <h4 className="font-bold text-white text-sm">Interactive Seating &amp; Stage Layout Studio</h4>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Drag-and-drop banquet tables, stage risers, lighting trusses, and guest seating with instant capacity math.
+                    Plan banquet tables, stage risers, lighting trusses, and guest seating with instant capacity math.
                   </p>
                 </div>
               </div>
@@ -747,10 +731,7 @@ export default function HomePage() {
 
           {/* Right Visual Box */}
           <div className="lg:col-span-6">
-            <TiltCard
-              glareColor="rgba(255, 215, 0, 0.25)"
-              className="border border-[#FFD700]/30 bg-[#101012] p-5 shadow-2xl space-y-4"
-            >
+            <div className="rounded-3xl border border-[#FFD700]/30 bg-[#101012] p-5 shadow-2xl space-y-4 hover:border-[#FFD700]/60 transition-all">
               {/* Window Controls */}
               <div className="flex items-center justify-between border-b border-white/10 pb-3 px-2">
                 <div className="flex items-center gap-2">
@@ -810,12 +791,12 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
-            </TiltCard>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── 8. FULL PLANNING CONCIERGE BANNER (JUST LIKE SETMYEVENT) ───────── */}
+      {/* ── 7. FULL PLANNING CONCIERGE BANNER (JUST LIKE SETMYEVENT) ───────── */}
       <section className="relative z-10 py-16 px-6 lg:px-8 max-w-7xl mx-auto text-center">
         <div className="rounded-3xl border border-[#FFD700]/40 bg-gradient-to-r from-[#1E1A10] via-[#141416] to-[#1E1A10] p-10 sm:p-14 lg:p-16 space-y-6 shadow-[0_20px_60px_rgba(255,215,0,0.15)]">
           <div className="inline-flex items-center gap-2 rounded-full bg-[#FFD700]/20 px-4 py-1.5 text-xs font-bold text-[#FFD700] border border-[#FFD700]/30">
