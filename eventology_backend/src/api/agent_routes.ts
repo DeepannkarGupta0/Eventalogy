@@ -112,6 +112,8 @@ export function extractPublicState(state: any) {
     eventPlan: state.eventPlan,
     candidateVenueCount: (state.candidateVenues ?? []).length,
     candidateVendorCount: (state.candidateVendors ?? []).length,
+    candidateVenues: (state.candidateVenues ?? []).slice(0, 12),
+    candidateVendors: (state.candidateVendors ?? []).slice(0, 20),
     availableVenueCount: (state.availableVenueIds ?? []).length,
     availableVendorCount: (state.availableVendorIds ?? []).length,
     budgetBreakdown: state.budgetBreakdown,
@@ -188,21 +190,26 @@ export function extractPublicState(state: any) {
   };
 }
 
-// ─── POST /api/agent/chat ─────────────────────────────────────────────────────
-// Start a new workflow or continue an existing conversation.
-// Requires: Authorization: Bearer <Firebase ID Token>
-// Body: { message: string, conversationId?: string, eventId?: string }
+// ─── Shared Execution Helpers ─────────────────────────────────────────────────
 
-agentRouter.post("/chat", verifyFirebaseToken, async (req: express.Request, res: express.Response) => {
-  const { message, conversationId, eventId } = req.body;
-  const userId = (req as any).user.uid;
+interface PreparedChatExecution {
+  wfId: string;
+  config: ReturnType<typeof buildThreadConfig>;
+  initialState: Record<string, any>;
+}
 
-  if (!message || typeof message !== "string") {
-    res.status(400).json({ error: "message is required and must be a string" });
-    return;
-  }
+async function prepareChatExecution(params: {
+  message: string;
+  conversationId?: string;
+  eventId?: string;
+  userId: string;
+  initialRequirements?: Record<string, any>;
+}): Promise<
+  | { ok: true; data: PreparedChatExecution; status?: never; error?: never }
+  | { ok: false; status: number; error: string; data?: never }
+> {
+  const { message, conversationId, eventId, userId, initialRequirements } = params;
 
-  // If eventId provided, verify that the event exists and is owned by the calling user
   if (eventId && typeof eventId === "string") {
     try {
       const eventDoc = await db.collection("events").doc(eventId).get();
@@ -210,8 +217,7 @@ agentRouter.post("/chat", verifyFirebaseToken, async (req: express.Request, res:
         const eventData = eventDoc.data() || {};
         const ownerId = eventData.customerId || eventData.userId;
         if (ownerId && ownerId !== userId) {
-          res.status(403).json({ error: "Access denied. You do not own this event." });
-          return;
+          return { ok: false, status: 403, error: "Access denied. You do not own this event." };
         }
       }
     } catch (e) {
@@ -221,96 +227,261 @@ agentRouter.post("/chat", verifyFirebaseToken, async (req: express.Request, res:
 
   const isNew = !conversationId;
   const wfId = conversationId ?? uuidv4();
-  const workflowId = wfId;
   const config = buildThreadConfig(wfId);
 
+  if (isNew) {
+    const seededReqs =
+      initialRequirements && typeof initialRequirements === "object"
+        ? initialRequirements
+        : {};
+    const hasCompleteSeededIntake = Boolean(
+      seededReqs.eventType &&
+      seededReqs.location &&
+      seededReqs.guestCount &&
+      seededReqs.dateStr
+    );
+
+    return {
+      ok: true,
+      data: {
+        wfId,
+        config,
+        initialState: {
+          workflowId: wfId,
+          conversationId: wfId,
+          userId,
+          eventId: eventId ?? null,
+          currentAgent: hasCompleteSeededIntake ? "orchestrator_agent" : "event_intake_agent",
+          currentStage: hasCompleteSeededIntake ? "planning" : "intake",
+          userMessage: hasCompleteSeededIntake ? "" : message,
+          conversationHistory: [new HumanMessage(message)],
+          eventRequirements: seededReqs,
+          missingInformation: [],
+          pendingQuestions: [],
+          intakeComplete: hasCompleteSeededIntake,
+          eventPlan: null,
+          aiPlanId: null,
+          resolvedServiceIds: [],
+          resolvedPackageIds: [],
+          candidateVenues: [],
+          candidateVendors: [],
+          availabilityResults: [],
+          vendorAvailabilityResults: [],
+          availableVenueIds: [],
+          availableVendorIds: [],
+          budgetBreakdown: null,
+          budgetSufficient: false,
+          pricingResults: {},
+          recommendations: [],
+          selectedVenueId: null,
+          selectedVendorIds: [],
+          pendingApprovals: [],
+          approvalStatus: "none",
+          createdEnquiryIds: [],
+          createdBookingIds: [],
+          createdAllocationIds: [],
+          agentHistory: [],
+          completedTasks: hasCompleteSeededIntake ? ["event_intake_agent"] : [],
+          failedTasks: [],
+          retryCount: 0,
+          workflowStatus: "active",
+          lastError: null,
+          metadata: hasCompleteSeededIntake ? { source: "5_step_planner" } : {},
+          artifacts: [],
+        },
+      },
+    };
+  }
+
+  const existingState = await eventologyAgentApp.getState(config);
+  if (!existingState.values || !existingState.values.workflowId) {
+    return {
+      ok: false,
+      status: 404,
+      error: "Workflow not found. The conversationId may be invalid or expired.",
+    };
+  }
+  if (existingState.values.userId !== userId) {
+    return { ok: false, status: 403, error: "Access denied. You do not own this workflow." };
+  }
+  if (eventId && existingState.values.eventId && existingState.values.eventId !== eventId) {
+    return {
+      ok: false,
+      status: 400,
+      error: "eventId does not match the eventId bound to this workflow.",
+    };
+  }
+
+  return {
+    ok: true,
+    data: {
+      wfId,
+      config,
+      initialState: {
+        userMessage: message,
+        conversationHistory: [new HumanMessage(message)],
+        currentAgent: "orchestrator_agent",
+      },
+    },
+  };
+}
+
+async function bindConversationToEvent(eventId: unknown, wfId: string): Promise<void> {
+  if (!eventId || typeof eventId !== "string") return;
   try {
-    let initialState: Partial<any> | undefined;
-
-    if (isNew) {
-      // Fresh workflow — build complete initial state
-      initialState = {
-        workflowId,
+    await db.collection("events").doc(eventId).set(
+      {
         conversationId: wfId,
-        userId,
-        eventId: eventId ?? null,
-        currentAgent: "event_intake_agent",
-        currentStage: "intake",
-        userMessage: message,
-        conversationHistory: [new HumanMessage(message)],
-        eventRequirements: {},
-        missingInformation: [],
-        pendingQuestions: [],
-        intakeComplete: false,
-        eventPlan: null,
-        aiPlanId: null,
-        resolvedServiceIds: [],
-        resolvedPackageIds: [],
-        candidateVenues: [],
-        candidateVendors: [],
-        availabilityResults: [],
-        vendorAvailabilityResults: [],
-        availableVenueIds: [],
-        availableVendorIds: [],
-        budgetBreakdown: null,
-        budgetSufficient: false,
-        pricingResults: {},
-        recommendations: [],
-        selectedVenueId: null,
-        selectedVendorIds: [],
-        pendingApprovals: [],
-        approvalStatus: "none",
-        createdEnquiryIds: [],
-        createdBookingIds: [],
-        createdAllocationIds: [],
-        agentHistory: [],
-        completedTasks: [],
-        failedTasks: [],
-        retryCount: 0,
-        workflowStatus: "active",
-        lastError: null,
-        metadata: {},
-        artifacts: [],
-      };
-    } else {
-      // Continuation — verify workflow exists, caller owns it, and eventId matches
-      const existingState = await eventologyAgentApp.getState(config);
-      if (!existingState.values || !existingState.values.workflowId) {
-        res.status(404).json({ error: "Workflow not found. The conversationId may be invalid or expired." });
-        return;
-      }
-      if (existingState.values.userId !== userId) {
-        res.status(403).json({ error: "Access denied. You do not own this workflow." });
-        return;
-      }
-      if (eventId && existingState.values.eventId && existingState.values.eventId !== eventId) {
-        res.status(400).json({ error: "eventId does not match the eventId bound to this workflow." });
-        return;
-      }
-      initialState = {
-        userMessage: message,
-        conversationHistory: [new HumanMessage(message)],
-        currentAgent: "orchestrator_agent", // re-enter orchestrator
-      };
-    }
+        workflowId: wfId,
+        updatedAt: new Date(),
+      },
+      { merge: true }
+    );
+  } catch (bindErr) {
+    console.warn("[AgentRouter] Could not bind conversationId to event:", bindErr);
+  }
+}
 
-    const result = await eventologyAgentApp.invoke(initialState, config);
+function writeSseEvent(res: express.Response, eventName: string, payload: unknown): void {
+  if (res.writableEnded || res.destroyed) return;
+  res.write(`event: ${eventName}\ndata: ${JSON.stringify(payload)}\n\n`);
+}
 
-    // Bind conversationId to the canonical event in Firestore if eventId is provided
-    if (eventId && typeof eventId === "string") {
-      try {
-        await db.collection("events").doc(eventId).set(
-          {
+async function streamGraphExecution(params: {
+  input: any;
+  config: ReturnType<typeof buildThreadConfig>;
+  wfId: string;
+  eventId?: unknown;
+  res: express.Response;
+}): Promise<void> {
+  const { input, config, wfId, eventId, res } = params;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  if (typeof (res as any).flushHeaders === "function") {
+    (res as any).flushHeaders();
+  }
+
+  let clientClosed = false;
+  res.on("close", () => {
+    clientClosed = true;
+  });
+
+  writeSseEvent(res, "started", { conversationId: wfId, workflowId: wfId });
+
+  try {
+    const stream = await eventologyAgentApp.stream(input, {
+      ...config,
+      streamMode: ["updates", "values"],
+      recursionLimit: 60,
+    });
+
+    for await (const chunk of stream as AsyncIterable<any>) {
+      if (clientClosed) break;
+      if (!Array.isArray(chunk) || chunk.length < 2) continue;
+
+      const [mode, payload] = chunk;
+      if (mode === "updates" && payload && typeof payload === "object") {
+        for (const [nodeName, delta] of Object.entries(payload)) {
+          if (nodeName === "__interrupt__") {
+            writeSseEvent(res, "interrupt", { conversationId: wfId, interrupts: delta });
+            continue;
+          }
+          const deltaObj = (delta && typeof delta === "object" ? delta : {}) as Record<string, any>;
+          writeSseEvent(res, "node_update", {
             conversationId: wfId,
-            workflowId: wfId,
-            updatedAt: new Date(),
-          },
-          { merge: true }
-        );
-      } catch (bindErr) {
-        console.warn("[AgentRouter] Could not bind conversationId to event:", bindErr);
+            node: nodeName,
+            nextAgent: deltaObj.currentAgent ?? null,
+            currentStage: deltaObj.currentStage ?? null,
+            workflowStatus: deltaObj.workflowStatus ?? null,
+            completedTasks: Array.isArray(deltaObj.completedTasks) ? deltaObj.completedTasks : undefined,
+          });
+        }
+      } else if (mode === "values" && payload && typeof payload === "object") {
+        writeSseEvent(res, "state_update", {
+          conversationId: wfId,
+          state: extractPublicState(payload),
+        });
       }
     }
+
+    await bindConversationToEvent(eventId, wfId);
+    const finalSnapshot = await eventologyAgentApp.getState(config);
+    const interrupted = Boolean(
+      finalSnapshot.tasks?.some((t: any) => Array.isArray(t.interrupts) && t.interrupts.length > 0)
+    );
+
+    writeSseEvent(res, "complete", {
+      success: true,
+      conversationId: wfId,
+      interrupted,
+      state: finalSnapshot.values ? extractPublicState(finalSnapshot.values) : null,
+    });
+  } catch (err: any) {
+    await bindConversationToEvent(eventId, wfId);
+    if (err?.name === "GraphInterrupt" || err?.lc_error_code === "GRAPH_RECURSION_LIMIT") {
+      try {
+        const snapshot = await eventologyAgentApp.getState(config);
+        writeSseEvent(res, "complete", {
+          success: true,
+          conversationId: wfId,
+          interrupted: true,
+          state: snapshot.values ? extractPublicState(snapshot.values) : null,
+        });
+      } catch {
+        writeSseEvent(res, "complete", { success: true, conversationId: wfId, interrupted: true });
+      }
+    } else {
+      console.error("[AgentRouter] stream error:", err);
+      writeSseEvent(res, "error", {
+        success: false,
+        conversationId: wfId,
+        error: err?.message ?? "Internal agent stream error",
+      });
+    }
+  } finally {
+    if (!res.writableEnded) {
+      res.end();
+    }
+  }
+}
+
+// ─── POST /api/agent/chat ─────────────────────────────────────────────────────
+// Start a new workflow or continue an existing conversation.
+// Requires: Authorization: Bearer <Firebase ID Token>
+// Body: { message: string, conversationId?: string, eventId?: string, initialRequirements?: object }
+
+agentRouter.post("/chat", verifyFirebaseToken, async (req: express.Request, res: express.Response) => {
+  const { message, conversationId, eventId, initialRequirements } = req.body;
+  const userId = (req as any).user.uid;
+
+  if (!message || typeof message !== "string") {
+    res.status(400).json({ error: "message is required and must be a string" });
+    return;
+  }
+
+  let wfId = conversationId ?? uuidv4();
+  let config = buildThreadConfig(wfId);
+
+  try {
+    const prepared = await prepareChatExecution({
+      message,
+      conversationId,
+      eventId,
+      userId,
+      initialRequirements,
+    });
+    if (!prepared.ok || !prepared.data) {
+      res.status(prepared.status ?? 400).json({ error: prepared.error ?? "Invalid request" });
+      return;
+    }
+
+    wfId = prepared.data.wfId;
+    config = prepared.data.config;
+    const result = await eventologyAgentApp.invoke(prepared.data.initialState, config);
+    await bindConversationToEvent(eventId, wfId);
 
     res.json({
       success: true,
@@ -318,21 +489,7 @@ agentRouter.post("/chat", verifyFirebaseToken, async (req: express.Request, res:
       state: extractPublicState(result),
     });
   } catch (err: any) {
-    // If interrupted and eventId present, ensure conversationId is still bound
-    if (eventId && typeof eventId === "string") {
-      try {
-        await db.collection("events").doc(eventId).set(
-          {
-            conversationId: wfId,
-            workflowId: wfId,
-            updatedAt: new Date(),
-          },
-          { merge: true }
-        );
-      } catch (bindErr) {
-        console.warn("[AgentRouter] Could not bind conversationId to event on interrupt:", bindErr);
-      }
-    }
+    await bindConversationToEvent(eventId, wfId);
 
     // LangGraph interrupt() surfaces as a specific type — surface correctly
     if (err?.name === "GraphInterrupt" || err?.lc_error_code === "GRAPH_RECURSION_LIMIT") {
@@ -352,6 +509,85 @@ agentRouter.post("/chat", verifyFirebaseToken, async (req: express.Request, res:
     }
     console.error("[AgentRouter] /chat error:", err);
     res.status(500).json({ error: err.message ?? "Internal agent error" });
+  }
+});
+
+// ─── POST /api/agent/chat/stream ──────────────────────────────────────────────
+// Server-Sent Events stream emitting live per-agent activation & state updates.
+
+agentRouter.post("/chat/stream", verifyFirebaseToken, async (req: express.Request, res: express.Response) => {
+  const { message, conversationId, eventId, initialRequirements } = req.body;
+  const userId = (req as any).user.uid;
+
+  if (!message || typeof message !== "string") {
+    res.status(400).json({ error: "message is required and must be a string" });
+    return;
+  }
+
+  try {
+    const prepared = await prepareChatExecution({
+      message,
+      conversationId,
+      eventId,
+      userId,
+      initialRequirements,
+    });
+    if (!prepared.ok || !prepared.data) {
+      res.status(prepared.status ?? 400).json({ error: prepared.error ?? "Invalid request" });
+      return;
+    }
+
+    await streamGraphExecution({
+      input: prepared.data.initialState,
+      config: prepared.data.config,
+      wfId: prepared.data.wfId,
+      eventId,
+      res,
+    });
+  } catch (err: any) {
+    console.error("[AgentRouter] /chat/stream setup error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: err?.message ?? "Failed to initialize agent stream" });
+    }
+  }
+});
+
+// ─── POST /api/agent/approve/stream ───────────────────────────────────────────
+// Resume interrupted workflow with live SSE streaming through booking & communication.
+
+agentRouter.post("/approve/stream", verifyFirebaseToken, async (req: express.Request, res: express.Response) => {
+  const { conversationId, approved, note } = req.body;
+  const userId = (req as any).user.uid;
+
+  if (!conversationId || typeof approved !== "boolean") {
+    res.status(400).json({ error: "conversationId and approved (boolean) are required" });
+    return;
+  }
+
+  const config = buildThreadConfig(conversationId);
+  try {
+    const existingState = await eventologyAgentApp.getState(config);
+    if (!existingState.values || !existingState.values.workflowId) {
+      res.status(404).json({ error: "Workflow not found. The conversationId may be invalid or expired." });
+      return;
+    }
+    if (existingState.values.userId !== userId) {
+      res.status(403).json({ error: "You do not have permission to approve this workflow." });
+      return;
+    }
+
+    await streamGraphExecution({
+      input: new Command({ resume: { approved, note: note ?? "" } }),
+      config,
+      wfId: conversationId,
+      eventId: existingState.values.eventId,
+      res,
+    });
+  } catch (err: any) {
+    console.error("[AgentRouter] /approve/stream error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: err?.message ?? "Approval stream failed" });
+    }
   }
 });
 

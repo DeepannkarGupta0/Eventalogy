@@ -1,30 +1,37 @@
-FROM node:22-alpine AS builder
+FROM node:22-slim AS builder
 
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if exists)
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm install
+COPY tsconfig.json ./
+COPY src ./src
 
-# Copy source code
-COPY . .
-
-# Build TypeScript to JavaScript
 RUN npm run build
 
-# --- Production Image ---
-FROM node:22-alpine
+# --- Production Image (Google Cloud Run) ---
+FROM node:22-slim
 
 WORKDIR /app
 
-# Copy only production dependencies
+# Install Python 3 + OpenCV headless for cv_blueprint_extractor.py
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-pip \
+    libglib2.0-0 \
+    libgl1 \
+    && pip3 install --no-cache-dir --break-system-packages numpy opencv-python-headless \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
-# Copy built code from builder
 COPY --from=builder /app/dist ./dist
+COPY src/tools/cv_blueprint_extractor.py ./dist/tools/cv_blueprint_extractor.py
 
-# Start the application
+ENV NODE_ENV=production
+ENV PORT=8080
+EXPOSE 8080
+
 CMD ["node", "dist/index.js"]

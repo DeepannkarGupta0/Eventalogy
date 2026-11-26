@@ -161,6 +161,20 @@ class WebNavBar extends StatelessWidget implements PreferredSizeWidget {
                     const SizedBox(width: 8),
                     _buildNavLink(
                       context,
+                      label: '5-Step AI Planner',
+                      icon: Icons.auto_awesome_rounded,
+                      isActive: currentIndex == 2,
+                      onTap: () {
+                        if (onTabSelected != null) {
+                          onTabSelected!(2);
+                        } else {
+                          context.go('/planner');
+                        }
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    _buildNavLink(
+                      context,
                       label: 'Become a Partner',
                       icon: Icons.handshake_outlined,
                       isActive: false,

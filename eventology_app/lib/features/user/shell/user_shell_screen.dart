@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/web_nav_bar.dart';
+import '../ai/widgets/floating_ai_concierge.dart';
 import '../events/widgets/create_event_sheet.dart';
 
 class UserShellScreen extends StatefulWidget {
@@ -38,7 +39,12 @@ class _UserShellScreenState extends State<UserShellScreen> {
               onTabSelected: changeTab,
             )
           : null,
-      body: widget.navigationShell,
+      body: Stack(
+        children: [
+          widget.navigationShell,
+          const FloatingAiConcierge(),
+        ],
+      ),
       bottomNavigationBar: isDesktop
           ? null
           : ClipRect(
@@ -64,7 +70,7 @@ class _UserShellScreenState extends State<UserShellScreen> {
                       _buildNavItem(0, Icons.explore_rounded, 'Explore'),
                       _buildNavItem(1, Icons.storefront_rounded, 'Catalog'),
                       _buildFab(context),
-                      _buildNavItem(2, Icons.layers_rounded, 'My Events'),
+                      _buildNavItem(2, Icons.auto_awesome_rounded, 'AI Planner'),
                       _buildNavItem(3, Icons.person_rounded, 'Profile'),
                     ],
                   ),

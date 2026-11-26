@@ -35,6 +35,7 @@ import '../../features/user/operations/screens/live_run_of_show_screen.dart';
 import '../../features/user/operations/screens/crew_station_screen.dart';
 import '../../features/vendor/rfq/vendor_rfq_inbox_view.dart';
 import '../../features/auth/splash_screen.dart';
+import '../../features/user/ai/screens/ai_workspace_screen.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key});
@@ -121,8 +122,9 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) =>
-          kIsWeb ? const UserHomeView() : const SplashScreen(),
+      builder: (context, state) => kIsWeb
+          ? const UserHomeView(showFloatingChat: true)
+          : const SplashScreen(),
     ),
     GoRoute(
       path: '/loading',
@@ -193,6 +195,24 @@ final appRouter = GoRouter(
         return VendorRfqInboxView(
           vendorId: vendorId,
           vendorName: vendorName,
+        );
+      },
+    ),
+    GoRoute(
+      path: '/ai-chat',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        final rawReqs = extra?['initialRequirements'];
+        return AiWorkspaceScreen(
+          initialMessage: extra?['initialMessage'] as String?,
+          conversationId: extra?['conversationId'] as String? ??
+              state.uri.queryParameters['conversationId'],
+          eventId: extra?['eventId'] as String? ??
+              state.uri.queryParameters['eventId'],
+          initialRequirements: rawReqs is Map
+              ? Map<String, dynamic>.from(rawReqs)
+              : null,
+          autoOpenChat: extra?['autoOpenChat'] == true,
         );
       },
     ),

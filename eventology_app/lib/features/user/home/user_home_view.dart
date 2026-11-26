@@ -10,10 +10,13 @@ import '../../../core/widgets/web_footer.dart';
 import '../../../services/firestore/catalog_repository.dart';
 import '../../../models/vendor_model.dart';
 import '../../../models/venue_model.dart';
+import '../ai/widgets/floating_ai_concierge.dart';
 import '../events/widgets/create_event_sheet.dart';
 
 class UserHomeView extends StatefulWidget {
-  const UserHomeView({super.key});
+  final bool showFloatingChat;
+
+  const UserHomeView({super.key, this.showFloatingChat = false});
 
   @override
   State<UserHomeView> createState() => _UserHomeViewState();
@@ -99,187 +102,192 @@ class _UserHomeViewState extends State<UserHomeView> {
                 const SizedBox(width: 16),
               ],
             ),
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF070709),
-          image: DecorationImage(
-            image: NetworkImage('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1600&auto=format&fit=crop'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(Color(0xF5070709), BlendMode.darken),
-          ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          top: !isDesktop,
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              0,
-              isDesktop ? 32.0 : 16.0,
-              0,
-              isDesktop ? 0 : 100.0,
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              color: Color(0xFF070709),
+              image: DecorationImage(
+                image: NetworkImage('https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1600&auto=format&fit=crop'),
+                fit: BoxFit.cover,
+                colorFilter: ColorFilter.mode(Color(0xF5070709), BlendMode.darken),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ── Web Content Wrapper ──────────────────────────────
-                ResponsiveWebContainer(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Desktop Hero Section
-                      if (isDesktop) ...[
-                        _buildDesktopHeroHeader(),
-                        const SizedBox(height: 32),
-                      ],
-
-                      // Universal Search Bar
-                      _buildUniversalSearchBar(context),
-                      const SizedBox(height: 16),
-
-                      // Category Filter Pills
-                      _buildCategoryFilterRow(),
-                      const SizedBox(height: 32),
-
-                      // Deep-Tech Engineering Primitives Showcase
-                      if (isDesktop) ...[
-                        _buildDeepTechShowcase(context),
-                        const SizedBox(height: 48),
-                      ],
-
-                      // Production Studio Hero Card
-                      _buildStudioHeroCard(context),
-                      const SizedBox(height: 40),
-
-                      // Featured Venues Section Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Featured Venues & Palaces',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'NBC 2016 safety-certified ballrooms, forts and open lawns with metric CAD models.',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: isDesktop ? 13 : 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () => context.push('/venues'),
-                            child: const Row(
-                              children: [
-                                Text(
-                                  'Explore All Venues',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Featured Venues (Responsive Grid or Carousel)
-                      isDesktop
-                          ? _buildDesktopFeaturedVenuesGrid()
-                          : _buildFeaturedVenuesCarousel(),
-                      const SizedBox(height: 40),
-
-                      // Curated Event Formats
-                      const Text(
-                        'Curated Event Formats',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildQuickNavigateSection(context),
-                      const SizedBox(height: 40),
-
-                      // Verified Production Vendors Section Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Verified Production Crews',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '5-Tier KYC validated sound, lighting, trussing, and luxury catering contractors.',
-                                style: TextStyle(
-                                  color: AppColors.textSecondary,
-                                  fontSize: isDesktop ? 13 : 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                          TextButton(
-                            onPressed: () => context.push('/vendors'),
-                            child: const Row(
-                              children: [
-                                Text(
-                                  'Explore All Crews',
-                                  style: TextStyle(
-                                    color: AppColors.primary,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Verified Production Vendors (Responsive Grid or Column)
-                      isDesktop
-                          ? _buildDesktopVendorsGrid()
-                          : _buildMobileVendorsColumn(),
-                      const SizedBox(height: 48),
-
-                      // Interactive Event Scale & Safety Estimator
-                      _buildScaleEstimatorWidget(context, isDesktop),
-                      const SizedBox(height: 48),
-                    ],
-                  ),
+            child: SafeArea(
+              bottom: false,
+              top: !isDesktop,
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  0,
+                  isDesktop ? 32.0 : 16.0,
+                  0,
+                  isDesktop ? 0 : 100.0,
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ── Web Content Wrapper ──────────────────────────────
+                    ResponsiveWebContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Desktop Hero Section
+                          if (isDesktop) ...[
+                            _buildDesktopHeroHeader(),
+                            const SizedBox(height: 32),
+                          ],
 
-                // Web Footer
-                if (isDesktop) const WebFooter(),
-              ],
+                          // Universal Search Bar
+                          _buildUniversalSearchBar(context),
+                          const SizedBox(height: 16),
+
+                          // Category Filter Pills
+                          _buildCategoryFilterRow(),
+                          const SizedBox(height: 32),
+
+                          // Deep-Tech Engineering Primitives Showcase
+                          if (isDesktop) ...[
+                            _buildDeepTechShowcase(context),
+                            const SizedBox(height: 48),
+                          ],
+
+                          // Production Studio Hero Card
+                          _buildStudioHeroCard(context),
+                          const SizedBox(height: 40),
+
+                          // Featured Venues Section Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Featured Venues & Palaces',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'NBC 2016 safety-certified ballrooms, forts and open lawns with metric CAD models.',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: isDesktop ? 13 : 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () => context.push('/venues'),
+                                child: const Row(
+                                  children: [
+                                    Text(
+                                      'Explore All Venues',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Featured Venues (Responsive Grid or Carousel)
+                          isDesktop
+                              ? _buildDesktopFeaturedVenuesGrid()
+                              : _buildFeaturedVenuesCarousel(),
+                          const SizedBox(height: 40),
+
+                          // Curated Event Formats
+                          const Text(
+                            'Curated Event Formats',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildQuickNavigateSection(context),
+                          const SizedBox(height: 40),
+
+                          // Verified Production Vendors Section Header
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Verified Production Crews',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '5-Tier KYC validated sound, lighting, trussing, and luxury catering contractors.',
+                                    style: TextStyle(
+                                      color: AppColors.textSecondary,
+                                      fontSize: isDesktop ? 13 : 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              TextButton(
+                                onPressed: () => context.push('/vendors'),
+                                child: const Row(
+                                  children: [
+                                    Text(
+                                      'Explore All Crews',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Icon(Icons.arrow_forward_rounded, color: AppColors.primary, size: 16),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Verified Production Vendors (Responsive Grid or Column)
+                          isDesktop
+                              ? _buildDesktopVendorsGrid()
+                              : _buildMobileVendorsColumn(),
+                          const SizedBox(height: 48),
+
+                          // Interactive Event Scale & Safety Estimator
+                          _buildScaleEstimatorWidget(context, isDesktop),
+                          const SizedBox(height: 48),
+                        ],
+                      ),
+                    ),
+
+                    // Web Footer
+                    if (isDesktop) const WebFooter(),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
+          if (widget.showFloatingChat) const FloatingAiConcierge(),
+        ],
       ),
     );
   }
@@ -346,14 +354,48 @@ class _UserHomeViewState extends State<UserHomeView> {
           ),
         ),
         const SizedBox(height: 14),
-        const Text(
-          'Institutional event architecture for high-stakes corporate galas, stadium concerts, and luxury weddings.\nEngineered with mathematical spatial solvers, NBC 2016 life safety proofs, and 25/50/25 milestone escrow.',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 16,
-            height: 1.6,
+          const Text(
+            'Institutional event architecture for high-stakes corporate galas, stadium concerts, and luxury weddings.\nEngineered with mathematical spatial solvers, NBC 2016 life safety proofs, and 25/50/25 milestone escrow.',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 16,
+              height: 1.6,
+            ),
           ),
-        ),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => context.go('/planner'),
+                icon: const Icon(Icons.auto_awesome_rounded, size: 18),
+                label: const Text(
+                  'Start 5-Step AI Planner',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => context.push('/ai-chat', extra: {'autoOpenChat': true}),
+                icon: const Icon(Icons.hub_rounded, size: 18, color: AppColors.primary),
+                label: const Text(
+                  'Open 14-Agent Workspace',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: AppColors.primary.withValues(alpha: 0.45)),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
       ],
     );
   }

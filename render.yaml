@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: eventology-backend
+    runtime: docker
+    plan: free
+    rootDir: eventology_backend
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: FIREBASE_PROJECT_ID
+        value: eventalogy-p1
+      - key: CORS_ORIGIN
+        value: https://eventology-website.vercel.app,https://eventalogy-p1.web.app,https://app.eventology.in
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false

@@ -45,7 +45,12 @@ app.use((req, res, next) => {
 const allowedOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(",").map((o) => o.trim())
   : process.env.NODE_ENV === "production"
-  ? ["https://eventalogy.io", "https://app.eventalogy.io", "https://eventalogy.in"]
+  ? [
+      "https://eventalogy.io",
+      "https://app.eventalogy.io",
+      "https://eventalogy.in",
+      "https://eventology-website.vercel.app",
+    ]
   : ["*"];
 
 const corsOptions: cors.CorsOptions = {
