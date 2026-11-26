@@ -22,6 +22,7 @@ node_modules/
 .dart_tool/
 build/
 dist/
-storage/
+/storage/
+eventology_backend/storage/
 *.pdf
 .next/
