@@ -43,13 +43,17 @@ import {
   DmxPatchService,
   RfCoordinationService,
   ProductionNetworkService,
+  MultiDisciplinePhysicsService,
 } from "../services/physics";
+import { AcousticRaytracingService } from "../services/physics/acoustic_raytracing_service";
+import { WindLoadBallastService } from "../services/physics/wind_load_ballast_service";
 import {
   VenueTechnicalIngestionService,
   IngestedVenueTechnicalData,
   WorkflowVenueAuthorizationContext,
 } from "../services/venue_technical_service";
 import { SpatialLayoutService, AccessibilityService } from "../services/spatial";
+import { Spatial3DGenerator } from "../services/spatial/spatial_3d_generator";
 import { EngineeringHoldService } from "../services/engineering_hold_service";
 
 // ─── Input Types for BOM Technical Specs ──────────────────────────────────────
@@ -1311,6 +1315,140 @@ export async function engineeringVerificationAgentNode(state: StateType): Promis
         updatedAt: new Date().toISOString(),
       };
       emittedArtifacts.push(accessibilityArtifact);
+    }
+
+    // ─── Multi-Discipline Physics, Acoustic Raytracing & Wind Audit ──────────
+    if (meta.includeMultiDisciplinePhysics === true) {
+      try {
+        const roomW = (venueSpatial as any)?.roomWidthM ?? 25;
+        const roomL = (venueSpatial as any)?.roomLengthM ?? 40;
+        const ceilingH = (venueSpatial as any)?.ceilingHeightM ?? 6;
+        const isExhibition = String(state.eventRequirements?.eventType ?? "").toLowerCase().includes("exhibition");
+
+        const multiAudit = MultiDisciplinePhysicsService.runComprehensiveAudit({
+          eventId: state.eventId || state.workflowId,
+          venueName: ingestedVenue.venueName || "Preliminary Event Venue",
+          stageInput: {
+            stageWidthM: Math.min(12, Math.max(6, Math.round(roomW * 0.4))),
+            stageDepthM: 5,
+            stageHeightM: 1.0,
+            totalAppliedPayloadKg: 1800,
+          },
+          acousticInput: {
+            arrayType: "line_array",
+            referenceSplAt1Meter_dBA: 130,
+            arrayLengthM: 2.5,
+            fohDistanceM: Math.round(roomL * 0.55),
+            audienceDepthM: Math.round(roomL * 0.8),
+            targetFohSpl_dBA: 88,
+            propertyBoundaryDistanceM: Math.round(roomL + 15),
+          },
+          stalls: isExhibition
+            ? [{
+                stallWidthM: 3,
+                stallDepthM: 3,
+                wallHeightM: 2.8,
+                structureSystem: "octanorm_40mm",
+                hasReturnWall: true,
+                hasOverheadCeilingCrossTies: true,
+                hasFasciaNameboard: true,
+                hasRaisedFlooring: false,
+              }]
+            : undefined,
+        });
+
+        const raytracing = AcousticRaytracingService.simulateSoundfield({
+          roomLengthM: roomL,
+          roomWidthM: roomW,
+          ceilingHeightM: ceilingH,
+          gridResolutionM: 4,
+        });
+
+        const windAudit = WindLoadBallastService.evaluateWindSafety({
+          forecastWindSpeedKmph: 35,
+          structures: [
+            {
+              id: "totem-1",
+              name: "Main Stage Truss Totem / LED Support",
+              structureType: "truss_totem_vertical",
+              totalHeightM: Math.min(5, ceilingH - 0.5),
+              baseWidthM: 1.2,
+              baseDepthM: 1.2,
+              effectiveExposedAreaM2: 3.6,
+              structureSelfWeightKg: 140,
+              appliedTopPayloadMassKg: 120,
+              currentBallastKg: 350,
+            },
+          ],
+        });
+
+        emittedArtifacts.push({
+          artifactId: `multi-physics-${state.workflowId}-v1`,
+          type: "generic_document",
+          title: "Multi-Discipline Physics, Acoustic & Wind Audit",
+          summary: `Safety Score: ${multiAudit.engineeringSafetyScore}/100 | Acoustic FOH: ${raytracing.fohEstimatedSplDba.toFixed(1)} dBA | Wind Safety: ${windAudit.overallSafe ? "PASS" : "BALLAST REQUIRED"}.`,
+          version: 1,
+          format: "json",
+          mimeType: "application/json",
+          status: multiAudit.overallCompliant && windAudit.overallSafe ? "validated" : "requires_review",
+          requiresReview: !(multiAudit.overallCompliant && windAudit.overallSafe),
+          sources,
+          content: JSON.stringify({ multiAudit, acousticRaytracing: raytracing, windAudit }, null, 2),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (mpErr: any) {
+        console.warn("[EngineeringVerificationAgent] Multi-discipline physics audit skipped:", mpErr?.message);
+      }
+    }
+
+    // ─── 3D Spatial Stage & Venue Model ──────────────────────────────────────
+    if (meta.include3dScene === true) {
+      try {
+        const roomW = (venueSpatial as any)?.roomWidthM ?? 25;
+        const roomL = (venueSpatial as any)?.roomLengthM ?? 40;
+        const ceilingH = (venueSpatial as any)?.ceilingHeightM ?? 6;
+        const stageW = Math.min(12, Math.max(6, Math.round(roomW * 0.4)));
+        const stageD = 5;
+
+        const scene3d = Spatial3DGenerator.generate(
+          ingestedVenue.venueId || "preliminary-venue",
+          ingestedVenue.venueName || "Preliminary Event Venue",
+          state.workflowId,
+          roomW,
+          roomL,
+          ceilingH,
+          {
+            stageRiserHeightM: 1.0,
+            stageWidthM: stageW,
+            stageDepthM: stageD,
+            stagePositionX: (roomW - stageW) / 2,
+            stagePositionY: 2.0,
+            hasAccessRamp: true,
+            trussTrimHeightM: Math.max(3.5, ceilingH - 1.0),
+            trussWidthM: stageW,
+            trussDepthM: stageD,
+          }
+        );
+
+        emittedArtifacts.push({
+          artifactId: `spatial-3d-${state.workflowId}-v1`,
+          type: "spatial_layout",
+          title: "3D Stage & Venue Spatial Model",
+          summary: `Generated 3D scene (${roomW}m x ${roomL}m x ${ceilingH}m) with ${scene3d.boxes.length} 3D volumes and ${scene3d.lines.length} truss/sightline vectors.`,
+          version: 1,
+          format: "json",
+          mimeType: "application/json",
+          status: "requires_review",
+          requiresReview: true,
+          sources,
+          content: JSON.stringify(scene3d, null, 2),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (s3dErr: any) {
+        console.warn("[EngineeringVerificationAgent] 3D spatial scene skipped:", s3dErr?.message);
+      }
     }
 
     // STEP-ENG-SAFETY-HOLD-01: Deterministic evaluation and task synchronization of technical review holds

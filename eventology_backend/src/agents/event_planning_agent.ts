@@ -6,6 +6,7 @@ import { createAgentTask, updateAgentTaskStatus } from "../services/agent_task_s
 import { saveAIPlan } from "../services/ai_plan_service";
 import { executeTool } from "../utils/tool_executor";
 import { getAllCategoriesTool, getEventTypesTool, getPackagesTool } from "../tools/services";
+import { imageGenerationService, type VisualCategory } from "../services/visual/image_generation_service";
 import type { StateType, EventPlan, ProductionArtifact } from "../graph/state";
 
 const PlanSchema = z.object({
@@ -173,13 +174,78 @@ ${JSON.stringify(state.eventRequirements, null, 2)}`;
       updatedAt: new Date().toISOString(),
     };
 
+    const emittedArtifacts: ProductionArtifact[] = [briefArtifact];
+
+    if ((state.metadata as any)?.includeConceptVisual === true) {
+      try {
+        const eventTypeStr = String(state.eventRequirements?.eventType ?? "Event");
+        const lowerType = eventTypeStr.toLowerCase();
+        let visualCategory: VisualCategory = "venue_styling";
+        if (lowerType.includes("wedding") || lowerType.includes("sangeet") || lowerType.includes("mandap")) {
+          visualCategory = "mandap";
+        } else if (
+          lowerType.includes("conference") ||
+          lowerType.includes("summit") ||
+          lowerType.includes("concert") ||
+          lowerType.includes("corporate") ||
+          lowerType.includes("launch")
+        ) {
+          visualCategory = "stage";
+        }
+
+        const visualRes = await imageGenerationService.generate({
+          eventType: eventTypeStr,
+          category: visualCategory,
+          themeDescription: plan.summary || `${eventTypeStr} production design`,
+          guestCount: state.eventRequirements?.guestCount,
+          venueStyle: plan.venueCharacteristics?.[0] || "Luxury Event Venue",
+          aspectRatio: "16:9",
+          workflowId: state.workflowId,
+        });
+
+        emittedArtifacts.push({
+          artifactId: `concept-visual-${state.workflowId}-v1`,
+          type: "concept_visual",
+          title: `${plan.title || eventTypeStr} — Concept Visual`,
+          summary: visualRes.success
+            ? `Generated ${visualRes.widthPx}x${visualRes.heightPx} ${visualCategory} concept render via ${visualRes.modelUsed}.`
+            : `Concept visual prompt prepared (${visualRes.modelUsed}): ${visualRes.error || "awaiting image provider"}`,
+          version: 1,
+          format: "json",
+          mimeType: "application/json",
+          content: JSON.stringify(visualRes, null, 2),
+          contentUrl: visualRes.imageUrl,
+          imageBase64: visualRes.imageBase64,
+          status: visualRes.success ? "validated" : "draft",
+          requiresReview: false,
+          sources: [
+            {
+              title: "Eventology AI Visual Studio",
+              sourceType: "web",
+              notes: `Provider model: ${visualRes.modelUsed}`,
+            },
+          ],
+          metadata: {
+            workflowId: state.workflowId,
+            modelUsed: visualRes.modelUsed,
+            category: visualCategory,
+            success: visualRes.success,
+          },
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (visErr: any) {
+        console.warn("[EventPlanningAgent] Concept visual generation skipped:", visErr?.message);
+      }
+    }
+
     return {
       eventPlan: plan as EventPlan,
       aiPlanId: planId,
       currentAgent: "orchestrator_agent",
       currentStage: "planning",
       workflowStatus: "active",
-      artifacts: [briefArtifact],
+      artifacts: emittedArtifacts,
       agentHistory: [{ agent: "event_planning_agent", stage: "planning", status: "success", startedAt: new Date(startTime).toISOString(), durationMs: Date.now() - startTime, notes: `Plan: "${plan.title}" | ${plan.requiredServices.length} services` }],
       completedTasks: ["event_planning_agent"],
     };
