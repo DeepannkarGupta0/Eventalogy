@@ -1187,20 +1187,24 @@ export async function engineeringVerificationAgentNode(state: StateType): Promis
       emittedArtifacts.push(spatialArtifact);
 
       if ((state.metadata as any)?.exportDxf === true) {
-        const cadArtifact = SpatialLayoutService.generatePreliminaryCadExportArtifact(
-          {
-            venueId: ingestedVenue.venueId || "",
-            venueName: ingestedVenue.venueName,
-            workflowId: state.workflowId,
-            spatialSpec: venueSpatial,
-            lifeSafetyResult,
-            declaredOccupantCount,
-          },
-          {
-            existingArtifacts: state.artifacts,
-          }
-        );
-        emittedArtifacts.push(cadArtifact);
+        try {
+          const cadArtifact = SpatialLayoutService.generatePreliminaryCadExportArtifact(
+            {
+              venueId: ingestedVenue.venueId || "",
+              venueName: ingestedVenue.venueName,
+              workflowId: state.workflowId,
+              spatialSpec: venueSpatial,
+              lifeSafetyResult,
+              declaredOccupantCount,
+            },
+            {
+              existingArtifacts: state.artifacts,
+            }
+          );
+          emittedArtifacts.push(cadArtifact);
+        } catch (dxfErr: any) {
+          console.warn("[EngineeringVerificationAgent] Preliminary DXF export skipped:", dxfErr?.message);
+        }
       }
     }
 
@@ -1513,6 +1517,10 @@ export async function engineeringVerificationAgentNode(state: StateType): Promis
       metadata: {
         workflowId: state.workflowId,
         eventId: state.eventId ?? undefined,
+        evaluatedVenueId: state.selectedVenueId ?? null,
+        evaluatedGuestCount: state.eventRequirements?.guestCount ?? null,
+        bomItemCount: state.budgetBreakdown?.lineItems?.length ?? 0,
+        bomTotalEstimatedCost: state.budgetBreakdown?.totalEstimatedCost ?? 0,
         verificationStatus: "requires_review",
         technicalValidationPassed: false,
         error: err.message,
@@ -1546,6 +1554,8 @@ export async function engineeringVerificationAgentNode(state: StateType): Promis
       metadata: {
         workflowId: state.workflowId,
         eventId: state.eventId ?? undefined,
+        evaluatedVenueId: state.selectedVenueId ?? null,
+        evaluatedGuestCount: state.eventRequirements?.guestCount ?? null,
         lifeSafetyStatus: "requires_review",
         isPreliminaryScreeningComplete: false,
         error: err.message,
